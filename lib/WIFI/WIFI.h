@@ -5,7 +5,7 @@
 
 class WIFI {
 public:
-    WIFI() {} // Default constructor
+    WIFI(); // Default constructor
     String setup();
     String reset();
     String connect();

@@ -1,5 +1,7 @@
 #include "SERVER.h"
 #include "SYSTEM.h" // Diğer modüllere erişmek için
+#include "OLED.h" // <--- BUNU EKLE (oled->write kullanabilmek için)
+#include "WIFI.h"
 
 // HTML'i PROGMEM (Flash) içinde tutarak RAM tasarrufu sağlıyoruz
 const char INDEX_HTML[] PROGMEM = R"rawliteral(
@@ -69,7 +71,7 @@ void SERVER::handleSensor()
 void SERVER::handleLED()
 {
     // Örnek: OLED'e yazdırıyoruz!
-    SYSTEM::getInstance().oled.write("LED Toggled!");
+    sys.oled->write("LED Toggled!");
 
     // Rastgele bir durum dönelim (Sen burada gerçek pin durumuna bakarsın)
     server.send(200, "text/html", "<b style='color:green'>ON</b>");
@@ -79,7 +81,7 @@ void SERVER::handleResetWiFi()
 {
     server.send(200, "text/plain", "WiFi Resetleniyor... Cihaz kapanacak.");
     delay(1000);
-    SYSTEM::getInstance().wifi.reset(); // WiFi sınıfındaki reset metodunu çağırır
+    sys.wifi->reset(); // WiFi sınıfındaki reset metodunu çağırır
 }
 
 void SERVER::handleExecute() {
@@ -91,8 +93,8 @@ void SERVER::handleExecute() {
         if (command.length() > 0) {
             // OLED'e erişip ekrana yazdırıyoruz!
             // SYSTEM Singleton yapısı sayesinde her yerden erişebilirsin
-            SYSTEM::getInstance().oled.write(command.c_str());
-            sys.oled.write("Komut: " + command);
+            sys.oled->write(command.c_str());
+            sys.oled->write("Komut: " + command);
             // Kullanıcıya geri bildirim gönder (HTMX target #terminal-res içine basar)
             server.send(200, "text/html", "Komut Gönderildi: " + command);
         } else {

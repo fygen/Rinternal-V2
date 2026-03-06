@@ -8,7 +8,7 @@
 class FSM
 {
 public:
-    FSM() {} // FS'i başlatır, mount edilemezse formatlar
+    FSM(); // FS'i başlatır, mount edilemezse formatlar
     bool setup(); 
     String readFile(const char *path); // Dosyayı oku
     bool writeFile(const char *path, const String &content); // Dosyaya yaz (üzerine yazar)

@@ -1,35 +1,21 @@
 #include <Arduino.h>
-#include <Ticker.h>
-#include "oledControlFromU8glib2.hpp"
-#include "wifi.h"
-
-Ticker oledTicker;
-int c = 0;
-String ipaddr;
-bool updateReady = false;
-
-// This function is called by the timer interrupt
-void setUpdateFlag() {
-  updateReady = true;
-}
-
+#include "SYSTEM.h"
+#include "SERVER.h" // <--- BUNU EKLE (loop() kullanabilmek için)
+#include "WIFI.h"
 
 void setup() {
-  u8g2.begin();
-  ipaddr = wifi::setup();
+    // Seri portu debug için başlat
+    Serial.begin(115200);
+    delay(1000); 
 
-  // Call 'setUpdateFlag' every 1.0 seconds
-  oledTicker.attach(1.0, setUpdateFlag);
+    // Singleton örneğini al ve her şeyi ayağa kaldır
+    // Bu fonksiyon; FSM, OLED, WIFI ve SERVER'ı sırayla başlatacak
+    SYSTEM::getInstance().beginAll();
+
+    Serial.println(">>> Sistem Tam Kapasite Calisiyor.");
 }
 
 void loop() {
-  wifi::loop();
-
-  if(updateReady) {
-    updateReady = false; // Reset the flag
-    c++;
-    handle_oled(c);
-    write_to_oled(ipaddr.c_str());
-  }
-  // delay(1000);
+    // Sadece server ve wifi gibi sürekli çalışması gereken modülleri döngüye sok
+    sys.server->loop();
 }

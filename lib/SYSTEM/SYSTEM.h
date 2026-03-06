@@ -1,9 +1,9 @@
 #ifndef SYSTEM_MANAGER_H
 #define SYSTEM_MANAGER_H
-#include "WIFI.h"
-#include "OLED.h"
-#include "SERVER.h"
-#include "FSM.h"
+class OLED;
+class WIFI;
+class SERVER;
+class FSM;
 
 class SYSTEM {
 public:
@@ -14,10 +14,10 @@ public:
     }
 
     // Pointers to your modules
-    WIFI wifi;
-    OLED oled;
-    SERVER server;
-    FSM fsm;
+    OLED* oled;
+    WIFI* wifi;
+    SERVER* server;
+    FSM* fsm;
     
     // Optional: A central "Emergency Stop" or "Init All"
     void beginAll();
