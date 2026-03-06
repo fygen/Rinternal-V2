@@ -3,21 +3,23 @@
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Wire.h>
 
 class OLED {
 public:
-    // Pass the display reference or initialize it here
+    OLED() : display(128, 64, &Wire, -1) {} // Constructor içinde başlatma
     void setup();
-    void write(const char *message);
+    int write(const String& message) { return write(message.c_str()); }
+    int write(const char *message);
     void clear();
-    void setCursor(int x, int y);
-    void loop(); // If you need to handle any updates or animations
+
 private:
-    Adafruit_SSD1306 display = Adafruit_SSD1306(128, 64, &Wire, -1);
+    Adafruit_SSD1306 display;
     int cursorX = 0;
     int cursorY = 0;
-    const int lineHeight = 10; // Adjust based on your font size
+    const int lineHeight = 10; 
     const int screenWidth = 128;
     const int screenHeight = 64;
 };
+
 #endif

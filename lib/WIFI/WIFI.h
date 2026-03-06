@@ -3,19 +3,18 @@
 #include <Arduino.h>
 #include <WiFiManager.h>
 
-class OLED; // Forward declaration
-
 class WIFI {
 public:
+    WIFI() {} // Default constructor
     String setup();
     String reset();
     String connect();
     String restart();
-private:
-    String mac_address[18];
-    String ip_address[16];
-    String ssid[32];
-    String password[64];
+    // getters for WiFi information
+    String getIP() { return WiFi.localIP().toString(); }
+    String getMAC() { return WiFi.macAddress(); }
+    String getSSID() { return WiFi.SSID(); }
+    String getPassword() { return WiFi.psk(); }
 };
 
 #endif

@@ -1,10 +1,9 @@
 #ifndef SYSTEM_MANAGER_H
 #define SYSTEM_MANAGER_H
-
-// Forward declarations
-class WiFi;
-class OLED;
-class SERVER;
+#include "WIFI.h"
+#include "OLED.h"
+#include "SERVER.h"
+#include "FSM.h"
 
 class SYSTEM {
 public:
@@ -15,9 +14,10 @@ public:
     }
 
     // Pointers to your modules
-    WiFi* wifi = nullptr;
-    OLED* oled = nullptr;
-    SERVER* server = nullptr;
+    WIFI wifi;
+    OLED oled;
+    SERVER server;
+    FSM fsm;
     
     // Optional: A central "Emergency Stop" or "Init All"
     void beginAll();
@@ -30,5 +30,7 @@ private:
     SYSTEM(SYSTEM const&) = delete;
     void operator=(SYSTEM const&) = delete;
 };
+
+static SYSTEM& sys = SYSTEM::getInstance(); //Global bir takma ad olarak sys kullanabilirsiniz. sys.wifi->setup() gibi.
 
 #endif

@@ -1,5 +1,9 @@
 #include "WIFI.h"
-#include <Arduino.h>
+
+WIFI::WIFI()
+{
+    setup();
+}
 
 String WIFI::setup()
 {
@@ -17,8 +21,6 @@ String WIFI::setup()
         Serial.println("WiFi Bağlandı..!");
         Serial.print("IP Adresiniz: ");
         Serial.println(WiFi.localIP());
-        this->ip_address[0] = WiFi.localIP().toString();
-        this->mac_address[0] = WiFi.macAddress();   
         return  "IP Adresiniz: " +  WiFi.localIP().toString();
     }
 }
