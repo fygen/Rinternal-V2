@@ -1,22 +1,25 @@
 #ifndef SERVER_MANAGER_H
 #define SERVER_MANAGER_H
+
 #include <ESP8266WebServer.h>
 
-class SERVER
-{
-    private:
-        ESP8266WebServer* server(int port); 
-    public:
-        SERVER() {}; // Default constructor
-        void setup(int port = 80);
-        void loop();
-        void handle_NotFound();
-        String handle_Receive();
+class SERVER {
+public:
+    SERVER() : server(80) {} // Port 80'de başlat
+    
+    void setup();
+    void loop();
 
-        void handle_SensorComponent();
-        void handle_LEDUpdate();
-        void handle_CustomComponent();
+private:
+    ESP8266WebServer server;
+
+    // Route Handler'lar (Özel fonksiyonlar)
+    void handleRoot();
+    void handleSensor();
+    void handleLED();
+    void handleResetWiFi();
+    void handleExecute();
+    void handleNotFound();
 };
-
 
 #endif

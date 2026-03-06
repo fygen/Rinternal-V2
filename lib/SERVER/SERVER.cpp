@@ -1,121 +1,109 @@
 #include "SERVER.h"
-#include <string.h>
-#include <Arduino.h>
+#include "SYSTEM.h" // Diğer modüllere erişmek için
 
-
-ESP8266WebServer server(80); // ESP8266WebServer nesnesi oluşturuyoruz.
-
-String INDEX_HTML = R"rawliteral( <!DOCTYPE html>
+// HTML'i PROGMEM (Flash) içinde tutarak RAM tasarrufu sağlıyoruz
+const char INDEX_HTML[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
 <html>
 <head>
     <title>ESP8266 Control</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>body { font-family: sans-serif; text-align: center; padding: 20px; }</style>
 </head>
 <body>
     <h1>Smart Home Dashboard</h1>
-
-    <div id="sensor-data" hx-get="/components/sensor" hx-trigger="every 2s">
-        Loading sensors...
-    </div>
-
+    <div id="sensor-data" hx-get="/components/sensor" hx-trigger="every 2s">Loading...</div>
+    <hr>
     <div id="led-control">
-        <button hx-post="/update/led" hx-target="#led-status">
-            Toggle Light
-        </button>
-        <span id="led-status">Unknown</span>
+        <button hx-post="/update/led" hx-target="#led-status">Toggle Light</button>
+        Status: <span id="led-status">OFF</span>
     </div>
-
-    <div id="Reset-control">
-        <button hx-post="/resetwifi" hx-target="#reset-status">
-            Reset WiFi
-        </button>
-        <span id="reset-status">Unknown</span>
-    </div>
+    <hr>
+    <button hx-post="/resetwifi" hx-confirm="Emin misiniz?">WiFi Reset</button>
+    <div id="terminal-section" style="margin-top:20px; border:1px solid #ccc; padding:10px;">
+    <h3>System Terminal</h3>
+    <input type="text" name="cmd" placeholder="Mesaj yaz..." id="cmd-input">
+    <button hx-post="/execute" 
+            hx-vals='js:{val: document.getElementById("cmd-input").value}'
+            hx-target="#terminal-res">
+        Gönder
+    </button>
+    <div id="terminal-res" style="color: blue; font-style: italic;"></div>
+</div>
 </body>
-</html>)rawliteral";
+</html>
+)rawliteral";
 
-// Handler for /components/sensor
-void handle_SensorComponent() {
-    // We only send the inner content
-    String html = "<div>";
-    html += "<strong>Temperature:</strong> " + String(0) + "°C<br>";
-    html += "<strong>Humidity:</strong> " + String(0) + "%";
-    html += "</div>";
-    
-    server.send(200, "text/html", html);
-}
-
-// Handler for /update/led
-void handle_LEDUpdate() {
-    // Toggle LED
-    // digitalWrite(LED_PIN, !digitalRead(LED_PIN));
-    
-    // Return the new status fragment
-    // String status = digitalRead(LED_PIN) ? "ON" : "OFF";
-    // String color = digitalRead(LED_PIN) ? "green" : "red";
-    String color = "green";
-    String status = "ON";
-    
-    String html = "<b style='color:" + color + "'>" + status + "</b>";
-    server.send(200, "text/html", html);
-};
-
-void SERVER::handle_NotFound()
+void SERVER::setup()
 {
-    server.send(404, "text/plain", "Not found");
-}
-
-String SERVER::handle_Receive(){
-    String message = "Message Received: ";
-    message += server.arg   ("message");
-    return message;
-}
-
-String SERVER::setup()
-{
-    Serial.begin(115200);
-    WiFiManager wm;
-    delay(100);
-
-    bool res = wm.autoConnect("AutoConnectAP","password"); 
-
-    if(!res) {
-        Serial.println("Bağlantı başarısız veya zaman aşımı.");
-        // ESP.restart(); // İstersen burada reset atabilirsin
-    } else {
-        Serial.println("WiFi Bağlandı..!");
-        Serial.print("IP Adresiniz: ");
-        Serial.println(WiFi.localIP());
-    }
-
-    // Main Page
-    server.on("/", HTTP_GET, []() {
-        server.send(200, "text/html", INDEX_HTML); // INDEX_HTML is your skeleton
-    });
-
-    // CRUD - READ (The Component)
-    server.on("/components/sensor", HTTP_GET, handle_SensorComponent);
-
-    // CRUD - UPDATE
-    server.on("/update/led", HTTP_POST, handle_LEDUpdate);
-
-// Reset WiFi Handler'ını güncellemen gerekecek:
-    server.on("/resetwifi", HTTP_POST, [](){
-        WiFiManager wm;
-        wm.resetSettings(); // Hafızayı siler
-        server.send(200, "text/html", "WiFi Ayarları Sıfırlandı. Cihazı yeniden başlatın.");
-        delay(1000);
-        ESP.restart();
-    });
+    server.on("/", HTTP_GET, std::bind(&SERVER::handleRoot, this));
+    server.on("/execute", HTTP_POST, std::bind(&SERVER::handleExecute, this));
+    server.on("/components/sensor", HTTP_GET, std::bind(&SERVER::handleSensor, this));
+    server.on("/update/led", HTTP_POST, std::bind(&SERVER::handleLED, this));
+    server.on("/resetwifi", HTTP_POST, std::bind(&SERVER::handleResetWiFi, this));
+    server.onNotFound(std::bind(&SERVER::handleNotFound, this));
 
     server.begin();
-
-    Serial.println("HTTP Sunucusu Başladı");
-    return WiFi.localIP().toString();
+    Serial.println("HTMX Server Started");
 }
 
 void SERVER::loop()
 {
-
     server.handleClient();
+}
+
+void SERVER::handleRoot()
+{
+    server.send_P(200, "text/html", INDEX_HTML);
+}
+
+void SERVER::handleSensor()
+{
+    // Burada SYSTEM üzerinden sensör verisi çekebilirsin
+    String html = "<div>";
+    html += "<strong>Temp:</strong> 24°C | <strong>Hum:</strong> 45%";
+    html += "</div>";
+    server.send(200, "text/html", html);
+}
+
+void SERVER::handleLED()
+{
+    // Örnek: OLED'e yazdırıyoruz!
+    SYSTEM::getInstance().oled.write("LED Toggled!");
+
+    // Rastgele bir durum dönelim (Sen burada gerçek pin durumuna bakarsın)
+    server.send(200, "text/html", "<b style='color:green'>ON</b>");
+}
+
+void SERVER::handleResetWiFi()
+{
+    server.send(200, "text/plain", "WiFi Resetleniyor... Cihaz kapanacak.");
+    delay(1000);
+    SYSTEM::getInstance().wifi.reset(); // WiFi sınıfındaki reset metodunu çağırır
+}
+
+void SERVER::handleExecute() {
+    // Input'tan gelen "val" parametresini alıyoruz
+    if (server.hasArg("val")) {
+        String command = server.arg("val");
+        
+        // Komut boş değilse işle
+        if (command.length() > 0) {
+            // OLED'e erişip ekrana yazdırıyoruz!
+            // SYSTEM Singleton yapısı sayesinde her yerden erişebilirsin
+            SYSTEM::getInstance().oled.write(command.c_str());
+            
+            // Kullanıcıya geri bildirim gönder (HTMX target #terminal-res içine basar)
+            server.send(200, "text/html", "Komut Gönderildi: " + command);
+        } else {
+            server.send(200, "text/html", "Hata: Boş komut!");
+        }
+    } else {
+        server.send(400, "text/plain", "Parametre hatasi");
+    }
+}
+
+void SERVER::handleNotFound()
+{
+    server.send(404, "text/plain", "Sayfa Bulunamadi");
 }
