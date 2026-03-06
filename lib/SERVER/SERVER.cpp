@@ -92,7 +92,7 @@ void SERVER::handleExecute() {
             // OLED'e erişip ekrana yazdırıyoruz!
             // SYSTEM Singleton yapısı sayesinde her yerden erişebilirsin
             SYSTEM::getInstance().oled.write(command.c_str());
-            
+            sys.oled.write("Komut: " + command);
             // Kullanıcıya geri bildirim gönder (HTMX target #terminal-res içine basar)
             server.send(200, "text/html", "Komut Gönderildi: " + command);
         } else {
