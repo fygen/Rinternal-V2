@@ -2,60 +2,57 @@
 
 void OLED::setup()
 {
-    // 0x3C genelde SSD1306 adresidir.
-    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
-    {
-        Serial.println(F("SSD1306 allocation failed"));
+    Serial.println("OLED: U8g2 baslatiliyor...");
+    
+    // ESP8266 varsayılan I2C pinleri (SDA=4, SCL=5)
+    // Eğer farklı pin kullanıyorsan Wire.begin(SDA, SCL); yapmalısın.
+    if (!u8g2.begin()) {
+        Serial.println("OLED: u8g2.begin() FAILED!");
         return;
     }
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 0);
-    display.display();
-    display.println("OLED Baslatildi!");
-    Serial.println("OLED Baslatildi!");
+
+    u8g2.setFont(u8g2_font_ncenB08_tr); // Standart okunabilir font
+    u8g2.clearBuffer();
+    u8g2.drawStr(0, 10, "OLED Hazir!");
+    u8g2.sendBuffer();
+    
+    Serial.println("OLED: Baslatildi ve Test Mesaji Yazildi.");
 }
 
-// Hem String hem char* desteği
 int OLED::write(const String &message) { return write(message.c_str()); }
 
 int OLED::write(const char *message)
 {
-    int16_t x1, y1;
-    uint16_t w, h;
-    display.getTextBounds(message, cursorX, cursorY, &x1, &y1, &w, &h);
+    // Fonta göre metin genişliğini hesapla
+    int w = u8g2.getStrWidth(message);
 
-    // Satır sonuna gelindi mi?
-    if (cursorX + w > screenWidth)
-    {
+    // Satır sonu kontrolü
+    if (cursorX + w > screenWidth) {
         cursorX = 0;
         cursorY += lineHeight;
     }
 
-    // Ekran doldu mu?
-    if (cursorY + h > screenHeight)
-    {
-        display.clearDisplay();
+    // Ekran doldu mu kontrolü
+    if (cursorY > screenHeight) {
+        u8g2.clearBuffer();
         cursorX = 0;
-        cursorY = 0;
+        cursorY = lineHeight;
     }
 
-    display.setCursor(cursorX, cursorY);
-    display.print(message);
-    display.print(" "); // Kelime arası boşluk
-    display.display();
+    // Yazdır
+    u8g2.drawStr(cursorX, cursorY, message);
+    u8g2.sendBuffer();
 
-    // İmleci güncelle
-    cursorX = display.getCursorX();
-    cursorY = display.getCursorY();
+    // İmleci bir sonraki kelime için kaydır (boşluk payı ile)
+    cursorX += w + 4; 
+    
     return 1;
 }
 
 void OLED::clear()
 {
-    display.clearDisplay();
-    display.display();
+    u8g2.clearBuffer();
+    u8g2.sendBuffer();
     cursorX = 0;
-    cursorY = 0;
+    cursorY = lineHeight;
 }
