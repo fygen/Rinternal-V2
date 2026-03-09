@@ -109,6 +109,30 @@ void SERVER::registerCommands()
         server.send(200, "text/html", sys.fsm->getFileList());
     };
 
+    commandMap["fsm"] = [this](std::vector<String> args)
+    {
+        if(args.size() > 0 && args[0] == "clear")
+        {
+            sys.fsm->deleteFile("/config.txt");
+            server.send(200, "text/html", "FSM Config Silindi");
+            return;
+        }
+        else if(args.size() > 0 && args[0] == "reset")
+        {
+            sys.fsm->writeFile("/config.txt", "default_config");
+            server.send(200, "text/html", "FSM Config Sifirlandi");
+            return;
+        }
+        else if(args.size() > 0 && args[0] == "read")
+        {
+            String content = sys.fsm->readFile("/config.txt");
+            server.send(200, "text/html", "FSM Config Icerigi: " + content);
+            return;
+        }
+        String status = "FSM Durumu: " + String(sys.fsm->fileExists("/config.txt") ? "Config Var" : "Config Yok");
+        server.send(200, "text/html", status);
+    };
+
     commandMap["clear"] = [this](std::vector<String> args)
     {
         sys.oled->clear();
@@ -117,7 +141,7 @@ void SERVER::registerCommands()
 
     commandMap["help"] = [this](std::vector<String> args)
     {
-        String helpText = "Komutlar: ls, clear, print [mesaj], wifi [option] [ssid] [pass]";
+        String helpText = "Komutlar: ls <br> clear <br> print [mesaj] <br> wifi [option] [ssid] [pass]";
         server.send(200, "text/html", helpText);
     };
 
@@ -142,12 +166,12 @@ void SERVER::registerCommands()
             String ssid = args[1];
             String pass = args[2];
             server.send(200, "text/html", "WiFi Ayarlandi: " + ssid);
-            sys.wifi->connect(ssid, pass); // Bu metodu wifi sınıfına ekleyebilirsin
+            sys.wifi->connect(ssid, pass);
         }
         else if(args.size() >= 1 && args[0] == "reset")
         {
             sys.wifi->reset();
-            server.send(200, "text/html", "WiFi Ayarları Sıfırlandı. Cihazı yeniden başlatın.");
+            server.send(200, "text/html", "WiFi Ayarları Sıfırlandı.<br> Cihazı yeniden başlatın.");
         }else if(args.size() >= 1 && args[0] == "restart")
         {
             sys.wifi->restart();
@@ -155,7 +179,7 @@ void SERVER::registerCommands()
         }
         else if(args.size() >= 1 && args[0] == "status")
         {
-            String status = "MAC: " + sys.wifi->getMAC() + ", IP: " + sys.wifi->getIP() + ", SSID: " + sys.wifi->getSSID() + ", Password: " + sys.wifi->getPassword();
+            String status = "MAC: " + sys.wifi->getMAC() + "<br>, IP: " + sys.wifi->getIP() + "<br>, SSID: " + sys.wifi->getSSID() + "<br>, Password: " + sys.wifi->getPassword();
             server.send(200, "text/html", status);
         }   
         else if(args.size() >= 1 && args[0] == "connect")
