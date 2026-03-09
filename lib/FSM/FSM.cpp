@@ -1,8 +1,6 @@
 #include "FSM.h"
 
-FSM::FSM() {
-    FSM::setup();
-}
+FSM::FSM() {}
 
 // FS'i başlatır, mount edilemezse formatlar
 bool FSM::setup()
@@ -12,6 +10,7 @@ bool FSM::setup()
         Serial.println("LittleFS Mount Failed");
         return false;
     }
+    Serial.println("LittleFS Success");
     return true;
 }
 

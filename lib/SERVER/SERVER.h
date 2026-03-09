@@ -1,5 +1,5 @@
-#ifndef SERVER_MANAGER_H
-#define SERVER_MANAGER_H
+#ifndef SERVER_H
+#define SERVER_H
 
 #include <ESP8266WebServer.h>
 

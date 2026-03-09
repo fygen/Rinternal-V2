@@ -1,5 +1,5 @@
-#ifndef SYSTEM_MANAGER_H
-#define SYSTEM_MANAGER_H
+#ifndef SYSTEM_H
+#define SYSTEM_H
 class OLED;
 class WIFI;
 class SERVER;
@@ -24,13 +24,15 @@ public:
 
 private:
     // Private constructor: stops anyone from doing "SYSTEM mySys;"
-    SYSTEM() {} 
+    SYSTEM() : oled(nullptr), wifi(nullptr), server(nullptr), fsm(nullptr) {
+        // Constructor boş, çünkü beginAll()'de başlatacağız
+    }
     
     // Stop copying the manager
     SYSTEM(SYSTEM const&) = delete;
     void operator=(SYSTEM const&) = delete;
 };
 
-static SYSTEM& sys = SYSTEM::getInstance(); //Global bir takma ad olarak sys kullanabilirsiniz. sys.wifi->setup() gibi.
+extern SYSTEM& sys;
 
 #endif

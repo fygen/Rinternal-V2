@@ -1,18 +1,21 @@
 #include <Arduino.h>
 #include "SYSTEM.h"
-#include "SERVER.h" // <--- BUNU EKLE (loop() kullanabilmek için)
+#include "OLED.h"   
 #include "WIFI.h"
+#include "SERVER.h"
+#include "FSM.h"
 
 void setup() {
     // Seri portu debug için başlat
     Serial.begin(115200);
     delay(1000); 
-
+    Serial.println(">>> Sistem Baslatiliyor...");
     // Singleton örneğini al ve her şeyi ayağa kaldır
     // Bu fonksiyon; FSM, OLED, WIFI ve SERVER'ı sırayla başlatacak
-    SYSTEM::getInstance().beginAll();
+    sys.beginAll(); // Bu, SYSTEM sınıfında tanımladığımız beginAll() fonksiyonunu çağırır ve tüm modülleri başlatır
 
     Serial.println(">>> Sistem Tam Kapasite Calisiyor.");
+    sys.oled->write(">>> Sistem Tam Kapasite Calisiyor.");
 }
 
 void loop() {

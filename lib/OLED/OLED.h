@@ -7,9 +7,7 @@
 
 class OLED {
 public:
-    OLED() : display(128, 64, &Wire, -1) {
-        setup();
-    } // Constructor içinde başlatma
+    OLED() : display(128, 64, &Wire, -1) {} // Constructor içinde başlatma
     void setup();
     int write(const String& message);
     int write(const char *message);

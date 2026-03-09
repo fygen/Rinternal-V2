@@ -20,3 +20,4 @@ void SYSTEM::beginAll() {
     oled->write("Sistem Hazir!");
 }
 
+SYSTEM& sys = SYSTEM::getInstance();

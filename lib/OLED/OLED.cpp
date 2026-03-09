@@ -13,6 +13,8 @@ void OLED::setup()
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(0, 0);
     display.display();
+    display.println("OLED Baslatildi!");
+    Serial.println("OLED Baslatildi!");
 }
 
 // Hem String hem char* desteği

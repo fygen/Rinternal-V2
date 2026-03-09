@@ -1,15 +1,14 @@
 #include "WIFI.h"
+#include "SYSTEM.h" // SYSTEM sınıfını dahil ediyoruz, böylece burada kullanabiliriz.
+#include "OLED.h"
 
-WIFI::WIFI()
-{
-    setup();
-}
+WIFI::WIFI(){}
 
 String WIFI::setup()
 {
-    Serial.begin(115200);
     WiFiManager wm;
     delay(100);
+    sys.oled->write("WiFi Baglaniliyor...");
 
     bool res = wm.autoConnect("AutoConnectAP","password"); 
 
