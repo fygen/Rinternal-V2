@@ -1,7 +1,8 @@
-#include "SERVER.h"
 #include "SYSTEM.h" // Diğer modüllere erişmek için
+#include "SERVER.h"
 #include "OLED.h" // <--- BUNU EKLE (oled->write kullanabilmek için)
 #include "WIFI.h"
+#include "FSM.h"
 
 // HTML'i PROGMEM (Flash) içinde tutarak RAM tasarrufu sağlıyoruz
 const char INDEX_HTML[] PROGMEM = R"rawliteral(
@@ -80,28 +81,130 @@ void SERVER::handleLED()
 void SERVER::handleResetWiFi()
 {
     server.send(200, "text/plain", "WiFi Resetleniyor... Cihaz kapanacak.");
-    delay(1000);
+    sys.oled->write("WiFi Resetleniyor... cihaz kapanacak.");
     sys.wifi->reset(); // WiFi sınıfındaki reset metodunu çağırır
 }
 
-void SERVER::handleExecute() {
-    // Input'tan gelen "val" parametresini alıyoruz
-    if (server.hasArg("val")) {
-        String command = server.arg("val");
-        
-        // Komut boş değilse işle
-        if (command.length() > 0) {
-            // OLED'e erişip ekrana yazdırıyoruz!
-            // SYSTEM Singleton yapısı sayesinde her yerden erişebilirsin
-            sys.oled->write(command.c_str());
-            sys.oled->write("Komut: " + command);
-            // Kullanıcıya geri bildirim gönder (HTMX target #terminal-res içine basar)
-            server.send(200, "text/html", "Komut Gönderildi: " + command);
-        } else {
-            server.send(200, "text/html", "Hata: Boş komut!");
+// String'i parçalara ayıran yardımcı fonksiyon
+std::vector<String> SERVER::splitString(String str, char delimiter)
+{
+    std::vector<String> internal;
+    int start = 0;
+    int end = str.indexOf(delimiter);
+    while (end != -1)
+    {
+        internal.push_back(str.substring(start, end));
+        start = end + 1;
+        end = str.indexOf(delimiter, start);
+    }
+    internal.push_back(str.substring(start));
+    return internal;
+}
+
+void SERVER::registerCommands()
+{
+    // 1. Parametresiz komut (args boş olacak)
+    commandMap["ls"] = [this](std::vector<String> args)
+    {
+        server.send(200, "text/html", sys.fsm->getFileList());
+    };
+
+    commandMap["clear"] = [this](std::vector<String> args)
+    {
+        sys.oled->clear();
+        server.send(200, "text/html", "OLED Temizlendi");
+    };
+
+    commandMap["help"] = [this](std::vector<String> args)
+    {
+        String helpText = "Komutlar: ls, clear, print [mesaj], wifi [option] [ssid] [pass]";
+        server.send(200, "text/html", helpText);
+    };
+
+    // 2. Tek parametreli komut: "print merhaba"
+    commandMap["print"] = [this](std::vector<String> args)
+    {
+        if (args.size() > 0)
+        {
+            String msg = "";
+            for (const auto &s : args)
+                msg += s + " "; // Tüm parçaları birleştir
+            sys.oled->write(msg.c_str());
+            server.send(200, "text/html", "OLED: " + msg);
         }
-    } else {
-        server.send(400, "text/plain", "Parametre hatasi");
+    };
+
+    // 3. Çok parametreli komut: "wifi set ssid password"
+    commandMap["wifi"] = [this](std::vector<String> args)
+    {
+        if (args.size() >= 2 && args[0] == "set")
+        {
+            String ssid = args[1];
+            String pass = args[2];
+            server.send(200, "text/html", "WiFi Ayarlandi: " + ssid);
+            sys.wifi->connect(ssid, pass); // Bu metodu wifi sınıfına ekleyebilirsin
+        }
+        else if(args.size() >= 1 && args[0] == "reset")
+        {
+            sys.wifi->reset();
+            server.send(200, "text/html", "WiFi Ayarları Sıfırlandı. Cihazı yeniden başlatın.");
+        }else if(args.size() >= 1 && args[0] == "restart")
+        {
+            sys.wifi->restart();
+            server.send(200, "text/html", "Cihaz yeniden başlatılıyor.");
+        }
+        else if(args.size() >= 1 && args[0] == "status")
+        {
+            String status = "MAC: " + sys.wifi->getMAC() + ", IP: " + sys.wifi->getIP() + ", SSID: " + sys.wifi->getSSID() + ", Password: " + sys.wifi->getPassword();
+            server.send(200, "text/html", status);
+        }   
+        else if(args.size() >= 1 && args[0] == "connect")
+        {
+            if(args.size() >= 3)
+            {
+                String ssid = args[1];
+                String pass = args[2];
+                String result = sys.wifi->connect(ssid, pass);
+                server.send(200, "text/html", result);
+            } else {
+                server.send(200, "text/html", "Kullanim: wifi connect [ssid] [pass]");
+            }
+        }
+        else
+        {
+            server.send(200, "text/html", "Kullanim: wifi set [ssid] [pass] <br> wifi reset <br> wifi restart <br> wifi status <br> wifi connect [ssid] [pass]");
+        }
+    };
+}
+
+void SERVER::commandParseAndExecute(String rawInput)
+{
+    rawInput.trim();
+    std::vector<String> tokens = splitString(rawInput, ' ');
+
+    if (tokens.empty())
+        return;
+
+    String cmd = tokens[0];       // İlk kelime komut
+    tokens.erase(tokens.begin()); // Komutu listeden at, geriye sadece argümanlar kalsın
+
+    auto it = commandMap.find(cmd);
+    if (it != commandMap.end())
+    {
+        it->second(tokens); // Argüman vektörünü fonksiyona yolla
+    }
+    else
+    {
+        sys.oled->write(rawInput.c_str());
+        server.send(200, "text/html", "Bilinmeyen komut, OLED'e basildi.");
+    }
+}
+
+void SERVER::handleExecute()
+{
+    if (server.hasArg("val"))
+    {
+        commandParseAndExecute(server.arg("val"));
     }
 }
 

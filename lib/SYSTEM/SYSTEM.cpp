@@ -14,7 +14,8 @@ void SYSTEM::beginAll() {
     // Başlatma sırası
     fsm->setup();
     oled->setup();
-    wifi->setup();
+    String wifiStatus = wifi->setup();
+    oled->write(wifiStatus);
     server->setup();
     
     oled->write("Sistem Hazir!");

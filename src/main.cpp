@@ -7,8 +7,7 @@
 
 void setup() {
     // Seri portu debug için başlat
-    Serial.begin(115200);
-    delay(1000); 
+    Serial.begin(115200); 
     Serial.println(">>> Sistem Baslatiliyor...");
     // Singleton örneğini al ve her şeyi ayağa kaldır
     // Bu fonksiyon; FSM, OLED, WIFI ve SERVER'ı sırayla başlatacak

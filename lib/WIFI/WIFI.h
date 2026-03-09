@@ -8,7 +8,7 @@ public:
     WIFI(); // Default constructor
     String setup();
     String reset();
-    String connect();
+    String connect(String ssid, String password);
     String restart();
     // getters for WiFi information
     String getIP() { return WiFi.localIP().toString(); }

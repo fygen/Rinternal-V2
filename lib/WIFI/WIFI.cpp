@@ -7,9 +7,8 @@ WIFI::WIFI(){}
 String WIFI::setup()
 {
     WiFiManager wm;
-    delay(100);
-    sys.oled->write("WiFi Baglaniliyor...");
-
+    sys.oled->write("WIFI bagli degilse...");
+    sys.oled->write("AutoConnectAP-password");
     bool res = wm.autoConnect("AutoConnectAP","password"); 
 
     if(!res) {
@@ -29,11 +28,21 @@ String WIFI::reset()
     WiFiManager wm;
     wm.resetSettings();
     return "WiFi Ayarları Sıfırlandı. Cihazı yeniden başlatın.";
+    setup(); // Sıfırladıktan sonra tekrar bağlanmayı dene
 }
 
-String WIFI::connect()
+String WIFI::connect(String ssid, String password)
 {
-    WiFi.begin();
+    WiFi.begin(ssid, password); // Buraya kendi WiFi bilgilerinizi girin
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 20) { // Ba
+        attempts++;
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+        return "WiFi Bağlantısı kuruldu.";
+    } else {
+        return "WiFi Bağlantısı kurulamadı.";
+    }
     return "WiFi Bağlantısı kuruldu.";
 }
 
