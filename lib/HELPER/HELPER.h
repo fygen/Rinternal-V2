@@ -1,0 +1,14 @@
+#ifndef HELPER_H
+#define HELPER_H
+
+#include <vector>
+#include <Arduino.h>
+
+class HELPER {
+public:
+    static std::vector<String> splitString(String str, char delimiter);
+private:
+
+};
+
+#endif

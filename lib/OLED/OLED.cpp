@@ -50,7 +50,6 @@ void OLED::setup()
     u8g2.clearBuffer();
     u8g2.drawStr(0, 10, "OLED Hazir!");
     u8g2.sendBuffer();
-    u8g2.setContrast(brightness); // Varsayılan parlaklık
 
     Serial.println("OLED: Baslatildi ve Test Mesaji Yazildi.");
 }

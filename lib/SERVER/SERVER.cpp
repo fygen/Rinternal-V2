@@ -1,9 +1,10 @@
+#include <WebSocketsServer.h>
 #include "SYSTEM.h" // Diğer modüllere erişmek için
 #include "SERVER.h"
 #include "OLED.h" // <--- BUNU EKLE (oled->write kullanabilmek için)
 #include "WIFI.h"
 #include "FSM.h"
-#include <WebSocketsServer.h>
+#include "HELPER.h" // String split fonksiyonu için
 
 WebSocketsServer webSocket = WebSocketsServer(81);
 
@@ -113,22 +114,6 @@ void SERVER::handleResetWiFi()
     sys.wifi->reset(); // WiFi sınıfındaki reset metodunu çağırır
 }
 
-// String'i parçalara ayıran yardımcı fonksiyon
-std::vector<String> SERVER::splitString(String str, char delimiter)
-{
-    std::vector<String> internal;
-    int start = 0;
-    int end = str.indexOf(delimiter);
-    while (end != -1)
-    {
-        internal.push_back(str.substring(start, end));
-        start = end + 1;
-        end = str.indexOf(delimiter, start);
-    }
-    internal.push_back(str.substring(start));
-    return internal;
-}
-
 void SERVER::registerCommands()
 {
     // 1. Parametresiz komut (args boş olacak)
@@ -232,7 +217,7 @@ void SERVER::registerCommands()
 void SERVER::commandParseAndExecute(String rawInput)
 {
     rawInput.trim();
-    std::vector<String> tokens = splitString(rawInput, ' ');
+    std::vector<String> tokens = HELPER::splitString(rawInput, ' ');
 
     if (tokens.empty())
         return;

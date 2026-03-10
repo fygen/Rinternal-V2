@@ -24,8 +24,6 @@ private:
     void handleLED();
     void handleResetWiFi();
     void handleNotFound();
-
-    std::vector<String> splitString(String str, char delimiter);
 };
 
 #endif

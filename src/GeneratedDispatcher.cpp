@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include "SYSTEM.h"
-#include "WIFI.h"
-#include "OLED.h"
 #include "SERVER.h"
+#include "OLED.h"
 #include "FSM.h"
+#include "WIFI.h"
 
 String dispatchCommand(String mod, String cmd, std::vector<String> args) {
     if (mod.equalsIgnoreCase("OLED") && cmd.equalsIgnoreCase("setup")) {
