@@ -241,7 +241,12 @@ void SERVER::handleExecute()
 {
     if (server.hasArg("val"))
     {
-        commandParseAndExecute(server.arg("val"));
+        auto Response = HELPER::dispatchCommand(HELPER::splitString(server.arg("val"), ' ')[0], // Modül adı (örneğin "OLED")
+                    HELPER::splitString(server.arg("val"), ' ')[1], // Komut adı (örneğin "write")
+                    std::vector<String>(HELPER::splitString(server.arg("val"), ' ').begin() + 2, HELPER::splitString(server.arg("val"), ' ').end())); // Geri kalan argümanlar
+        // Alternatif olarak doğrudan tüm komutu da gönderebilirsin:
+        logger("Komut alindi: " + server.arg("val") + " | Response: " + Response);
+        // commandParseAndExecute(server.arg("val"));
     }
 }
 

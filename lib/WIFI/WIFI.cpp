@@ -25,9 +25,9 @@ String WIFI::setup()
     else
     {
         Serial.println("WiFi Bağlandı..!");
-        Serial.print("IP Adresiniz: ");
+        Serial.print("IP: ");
         Serial.println(WiFi.localIP());
-        return "IP Adresiniz: " + WiFi.localIP().toString();
+        return "IP: " + WiFi.localIP().toString();
     }
 }
 

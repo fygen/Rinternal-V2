@@ -2,11 +2,11 @@ import os
 import re
 
 search_path = "./lib"
-output_file = "./src/GeneratedDispatcher.cpp"
+output_file = "./lib/HELPER/GeneratedDispatcher.cpp"
 
 # --- EXCLUDE YAPILANDIRMASI ---
 EXCLUDE_FILES = ["SYSTEM.h", "InternalTest.h"] # Bu dosyalar tamamen taranmaz
-EXCLUDE_METHODS = ["resetFactory", "debugInternalState"] # Bu isimdeki metodlar dahil edilmez
+EXCLUDE_METHODS = ["resetFactory", "debugInternalState","dispatchCommand"] # Bu isimdeki metodlar dahil edilmez
 # ------------------------------
 
 method_pattern = r"(\w+[\s\*&]+)(\w+)\s*\((.*?)\);"
@@ -51,8 +51,9 @@ with open(output_file, "w", encoding="utf-8") as f:
     f.write('#include <Arduino.h>\n#include "SYSTEM.h"\n')
     for mod in set(cmd['module'] for cmd in commands):
         f.write(f'#include "{mod}.h"\n')
+        f.write(f'#include "HELPER.h"\n')
     
-    f.write('\nString dispatchCommand(String mod, String cmd, std::vector<String> args) {\n')
+    f.write('\nString HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args) {\n')
     
     for cmd in commands:
         # Argüman sayısı kontrolü ekleyelim (Güvenlik için)
