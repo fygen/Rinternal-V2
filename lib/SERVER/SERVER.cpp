@@ -3,6 +3,19 @@
 #include "OLED.h" // <--- BUNU EKLE (oled->write kullanabilmek için)
 #include "WIFI.h"
 #include "FSM.h"
+#include <WebSocketsServer.h>
+
+WebSocketsServer webSocket = WebSocketsServer(81);
+
+void logger(String message) {
+    // 1. Standart Serial'e yaz
+    Serial.println(message);
+    
+    // 2. Bağlı olan tüm web istemcilerine gönder (HTMX için)
+    // Mesajı bir HTML parçası olarak gönderiyoruz ki HTMX doğrudan ekrana basabilsin
+    String htmxMessage = "<div hx-swap-oob='beforeend:#log-container'>" + message + "<br></div>";
+    webSocket.broadcastTXT(htmxMessage);
+}
 
 // HTML'i PROGMEM (Flash) içinde tutarak RAM tasarrufu sağlıyoruz
 const char INDEX_HTML[] PROGMEM = R"rawliteral(
@@ -33,6 +46,21 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
     </button>
     <div id="terminal-res" style="color: blue; font-style: italic;"></div>
 </div>
+<script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
+<div id="log-container" 
+     style="height: 300px; overflow-y: auto; background: black; color: lime;"
+     hx-ext="ws" ws-connect="/ws"
+     onlineadded="this.scrollTop = this.scrollHeight">
+    </div>
+
+<script>
+    // MutationObserver ile yeni log geldiğinde kaydırma yapabiliriz
+    const container = document.getElementById('log-container');
+    const observer = new MutationObserver(() => {
+        container.scrollTop = container.scrollHeight;
+    });
+    observer.observe(container, { childList: true });
+</script>
 </body>
 </html>
 )rawliteral";
@@ -106,30 +134,30 @@ void SERVER::registerCommands()
     // 1. Parametresiz komut (args boş olacak)
     commandMap["ls"] = [this](std::vector<String> args)
     {
-        server.send(200, "text/html", sys.fsm->getFileList());
+        server.send(200, "text/html", sys.fsm->getfilelist());
     };
 
     commandMap["fsm"] = [this](std::vector<String> args)
     {
         if(args.size() > 0 && args[0] == "clear")
         {
-            sys.fsm->deleteFile("/config.txt");
+            sys.fsm->deletefile("/config.txt");
             server.send(200, "text/html", "FSM Config Silindi");
             return;
         }
         else if(args.size() > 0 && args[0] == "reset")
         {
-            sys.fsm->writeFile("/config.txt", "default_config");
+            sys.fsm->writefile("/config.txt", "default_config");
             server.send(200, "text/html", "FSM Config Sifirlandi");
             return;
         }
         else if(args.size() > 0 && args[0] == "read")
         {
-            String content = sys.fsm->readFile("/config.txt");
+            String content = sys.fsm->readfile("/config.txt");
             server.send(200, "text/html", "FSM Config Icerigi: " + content);
             return;
         }
-        String status = "FSM Durumu: " + String(sys.fsm->fileExists("/config.txt") ? "Config Var" : "Config Yok");
+        String status = "FSM Durumu: " + String(sys.fsm->fileexists("/config.txt") ? "Config Var" : "Config Yok");
         server.send(200, "text/html", status);
     };
 

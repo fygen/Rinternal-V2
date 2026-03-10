@@ -9,12 +9,13 @@ class FSM
 {
 public:
     FSM(); // FS'i başlatır, mount edilemezse formatlar
-    bool setup(); 
-    String readFile(const char *path); // Dosyayı oku
-    bool writeFile(const char *path, const String &content); // Dosyaya yaz (üzerine yazar)
-    bool deleteFile(const char *path);
-    String getFileList(); // Dosya listesini ANLIK olarak oluştur (RAM tasarrufu)
-    bool fileExists(const char *path);
+    bool setup();
+    // @shell: readfile (dosyayolu)
+    String readfile(const char *path);                       // Dosyayı oku
+    bool writefile(const char *path, const String &content); // Dosyaya yaz (üzerine yazar)
+    bool deletefile(const char *path);
+    String getfilelist(); // Dosya listesini ANLIK olarak oluştur (RAM tasarrufu)
+    bool fileexists(const char *path);
 };
 
 #endif

@@ -15,7 +15,8 @@ bool FSM::setup()
 }
 
 // Dosyayı oku
-String FSM::readFile(const char *path)
+// @shell: readfile (dosyayolu)
+String FSM::readfile(const char *path)
 {
     File file = LittleFS.open(path, "r");
     if (!file || file.isDirectory())
@@ -26,7 +27,7 @@ String FSM::readFile(const char *path)
 }
 
 // Dosyaya yaz (üzerine yazar)
-bool FSM::writeFile(const char *path, const String &content)
+bool FSM::writefile(const char *path, const String &content)
 {
     File file = LittleFS.open(path, "w");
     if (!file)
@@ -37,13 +38,13 @@ bool FSM::writeFile(const char *path, const String &content)
 }
 
 // Dosyayı sil
-bool FSM::deleteFile(const char *path)
+bool FSM::deletefile(const char *path)
 {
     return LittleFS.remove(path);
 }
 
 // Dosya listesini ANLIK olarak oluştur (RAM tasarrufu)
-String FSM::getFileList()
+String FSM::getfilelist()
 {
     String list = "Files:\n";
     Dir dir = LittleFS.openDir("/"); // ESP8266'da openDir kullanılır
@@ -54,7 +55,7 @@ String FSM::getFileList()
     return list;
 }
 
-bool FSM::fileExists(const char *path)
+bool FSM::fileexists(const char *path)
 {
     return LittleFS.exists(path);
 }

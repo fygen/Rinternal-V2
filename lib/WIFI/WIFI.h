@@ -11,10 +11,10 @@ public:
     String connect(String ssid, String password);
     String restart();
     // getters for WiFi information
-    String getIP() { return WiFi.localIP().toString(); }
-    String getMAC() { return WiFi.macAddress(); }
-    String getSSID() { return WiFi.SSID(); }
-    String getPassword() { return WiFi.psk(); }
+    String getIP();
+    String getMAC();
+    String getSSID();
+    String getPassword();
 };
 
 #endif
