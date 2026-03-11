@@ -8,6 +8,7 @@ class HELPER {
 public:
     static std::vector<String> splitString(String str, char delimiter);
     static String dispatchCommand(String mod, String cmd, std::vector<String> args);
+    static String getHelp(); // Add this line
 private:
 
 };

@@ -237,18 +237,45 @@ void SERVER::commandParseAndExecute(String rawInput)
     }
 }
 
-void SERVER::handleExecute()
-{
-    if (server.hasArg("val"))
-    {
-        auto Response = HELPER::dispatchCommand(HELPER::splitString(server.arg("val"), ' ')[0], // Modül adı (örneğin "OLED")
-                    HELPER::splitString(server.arg("val"), ' ')[1], // Komut adı (örneğin "write")
-                    std::vector<String>(HELPER::splitString(server.arg("val"), ' ').begin() + 2, HELPER::splitString(server.arg("val"), ' ').end())); // Geri kalan argümanlar
-        // Alternatif olarak doğrudan tüm komutu da gönderebilirsin:
-        logger("Komut alindi: " + server.arg("val") + " | Response: " + Response);
-        // commandParseAndExecute(server.arg("val"));
+
+void SERVER::handleExecute() {
+    if (server.hasArg("val")) {
+        String input = server.arg("val");
+        std::vector<String> tokens = HELPER::splitString(input, ' ');
+        
+        if(tokens.size() >= 2) {
+            String module = tokens[0];
+            String command = tokens[1];
+            
+            // Extract remaining arguments efficiently
+            std::vector<String> args;
+            for(size_t i = 2; i < tokens.size(); i++) {
+                args.push_back(tokens[i]);
+            }
+
+            String response = HELPER::dispatchCommand(module, command, args);
+            logger("Cmd: " + input + " | Res: " + response);
+            
+            // Send a response back to the HTMX target
+            server.send(200, "text/html", "Success: " + response);
+        } else {
+            server.send(200, "text/html", "Hata: Eksik parametre");
+        }
     }
 }
+
+// void SERVER::handleExecute()
+// {
+//     if (server.hasArg("val"))
+//     {
+//         auto Response = HELPER::dispatchCommand(HELPER::splitString(server.arg("val"), ' ')[0], // Modül adı (örneğin "OLED")
+//                     HELPER::splitString(server.arg("val"), ' ')[1], // Komut adı (örneğin "write")
+//                     std::vector<String>(HELPER::splitString(server.arg("val"), ' ').begin() + 2, HELPER::splitString(server.arg("val"), ' ').end())); // Geri kalan argümanlar
+//         // Alternatif olarak doğrudan tüm komutu da gönderebilirsin:
+//         logger("Komut alindi: " + server.arg("val") + " | Response: " + Response);
+//         // commandParseAndExecute(server.arg("val"));
+//     }
+// }
 
 void SERVER::handleNotFound()
 {

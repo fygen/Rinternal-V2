@@ -7,6 +7,7 @@
 
 void setup() {
     // Seri portu debug için başlat
+    Serial.println(ESP.getResetReason());
     Serial.begin(115200); 
     Serial.println(">>> Sistem Baslatiliyor...");
     // Singleton örneğini al ve her şeyi ayağa kaldır

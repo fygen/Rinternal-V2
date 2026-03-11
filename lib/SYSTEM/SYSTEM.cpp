@@ -3,6 +3,7 @@
 #include "WIFI.h"
 #include "SERVER.h"
 #include "FSM.h"
+#include "HELPER.h"
 
 void SYSTEM::beginAll() {
     // Nesneleri Heap üzerinde oluşturuyoruz (Pointer kullandığımız için)
@@ -10,6 +11,7 @@ void SYSTEM::beginAll() {
     if(!wifi)   wifi = new WIFI();
     if(!fsm)    fsm = new FSM();
     if(!server) server = new SERVER();
+    if(!helper) helper = new HELPER();
 
     // Başlatma sırası
     fsm->setup();

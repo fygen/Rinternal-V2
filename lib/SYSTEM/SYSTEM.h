@@ -4,6 +4,7 @@ class OLED;
 class WIFI;
 class SERVER;
 class FSM;
+class HELPER;
 
 class SYSTEM {
 public:
@@ -18,6 +19,7 @@ public:
     WIFI* wifi;
     SERVER* server;
     FSM* fsm;
+    HELPER* helper;
     
     // Optional: A central "Emergency Stop" or "Init All"
     void beginAll();
