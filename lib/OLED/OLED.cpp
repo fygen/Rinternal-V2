@@ -10,7 +10,7 @@ String OLED::setBrightness(int level)
     return "Parlaklık seviyesi ayarlandı."; // Başarılı
 }
 
-String OLED::getOledStatus()
+String OLED::getStatus()
 {
     return "CursorX: " + String(cursorX) + ", CursorY: " + String(cursorY) +
            ", ScreenWidth: " + String(screenWidth) + ", ScreenHeight: " + String(screenHeight) +

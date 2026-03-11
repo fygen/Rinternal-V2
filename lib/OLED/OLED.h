@@ -20,7 +20,7 @@ public:
     int write(const char *message);
     void clear();
     String setBrightness(int level); // 0-255 arası değer alır
-    String getOledStatus();
+    String getStatus();
     String setCursor(int x, int y);
     String setLineHeight(int height);
     String setScreenSize(int width, int height);

@@ -9,6 +9,40 @@
 #include "WIFI.h"
 
 String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args) {
+    if (mod.equalsIgnoreCase("SERVER") && cmd.equalsIgnoreCase("handleExecute")) {
+        if (args.size() < 0) return "Error: 0 params required!";
+        sys.server->handleExecute();
+        return "OK";
+    }
+    if (mod.equalsIgnoreCase("SERVER") && cmd.equalsIgnoreCase("commandParseAndExecute")) {
+        if (args.size() < 1) return "Error: 1 params required!";
+        sys.server->commandParseAndExecute(args[0]);
+        return "OK";
+    }
+    if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("readfile")) {
+        if (args.size() < 1) return "Error: 1 params required!";
+        return String(sys.fsm->readfile(args[0].c_str()));
+    }
+    if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("writefile")) {
+        if (args.size() < 2) return "Error: 2 params required!";
+        return sys.fsm->writefile(args[0].c_str(), args[1]) ? "true" : "false";
+    }
+    if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("deletefile")) {
+        if (args.size() < 1) return "Error: 1 params required!";
+        return sys.fsm->deletefile(args[0].c_str()) ? "true" : "false";
+    }
+    if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("getfilelist")) {
+        if (args.size() < 0) return "Error: 0 params required!";
+        return String(sys.fsm->getfilelist());
+    }
+    if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("fileexists")) {
+        if (args.size() < 1) return "Error: 1 params required!";
+        return sys.fsm->fileexists(args[0].c_str()) ? "true" : "false";
+    }
+    if (mod.equalsIgnoreCase("HELPER") && cmd.equalsIgnoreCase("getHelp")) {
+        if (args.size() < 0) return "Error: 0 params required!";
+        return String(sys.helper->getHelp());
+    }
     if (mod.equalsIgnoreCase("OLED") && cmd.equalsIgnoreCase("write")) {
         if (args.size() < 1) return "Error: 1 params required!";
         return String(sys.oled->write(args[0]));
@@ -26,9 +60,9 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
         if (args.size() < 1) return "Error: 1 params required!";
         return String(sys.oled->setBrightness(args[0].toInt()));
     }
-    if (mod.equalsIgnoreCase("OLED") && cmd.equalsIgnoreCase("getOledStatus")) {
+    if (mod.equalsIgnoreCase("OLED") && cmd.equalsIgnoreCase("getStatus")) {
         if (args.size() < 0) return "Error: 0 params required!";
-        return String(sys.oled->getOledStatus());
+        return String(sys.oled->getStatus());
     }
     if (mod.equalsIgnoreCase("OLED") && cmd.equalsIgnoreCase("setCursor")) {
         if (args.size() < 2) return "Error: 2 params required!";
@@ -41,16 +75,6 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
     if (mod.equalsIgnoreCase("OLED") && cmd.equalsIgnoreCase("setScreenSize")) {
         if (args.size() < 2) return "Error: 2 params required!";
         return String(sys.oled->setScreenSize(args[0].toInt(), args[1].toInt()));
-    }
-    if (mod.equalsIgnoreCase("SERVER") && cmd.equalsIgnoreCase("handleExecute")) {
-        if (args.size() < 0) return "Error: 0 params required!";
-        sys.server->handleExecute();
-        return "OK";
-    }
-    if (mod.equalsIgnoreCase("SERVER") && cmd.equalsIgnoreCase("commandParseAndExecute")) {
-        if (args.size() < 1) return "Error: 1 params required!";
-        sys.server->commandParseAndExecute(args[0]);
-        return "OK";
     }
     if (mod.equalsIgnoreCase("WIFI") && cmd.equalsIgnoreCase("reset")) {
         if (args.size() < 0) return "Error: 0 params required!";
@@ -80,30 +104,6 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
         if (args.size() < 0) return "Error: 0 params required!";
         return String(sys.wifi->getPassword());
     }
-    if (mod.equalsIgnoreCase("HELPER") && cmd.equalsIgnoreCase("getHelp")) {
-        if (args.size() < 0) return "Error: 0 params required!";
-        return String(sys.helper->getHelp());
-    }
-    if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("readfile")) {
-        if (args.size() < 1) return "Error: 1 params required!";
-        return String(sys.fsm->readfile(args[0].c_str()));
-    }
-    if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("writefile")) {
-        if (args.size() < 2) return "Error: 2 params required!";
-        return sys.fsm->writefile(args[0].c_str(), args[1]) ? "true" : "false";
-    }
-    if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("deletefile")) {
-        if (args.size() < 1) return "Error: 1 params required!";
-        return sys.fsm->deletefile(args[0].c_str()) ? "true" : "false";
-    }
-    if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("getfilelist")) {
-        if (args.size() < 0) return "Error: 0 params required!";
-        return String(sys.fsm->getfilelist());
-    }
-    if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("fileexists")) {
-        if (args.size() < 1) return "Error: 1 params required!";
-        return sys.fsm->fileexists(args[0].c_str()) ? "true" : "false";
-    }
 
     return "Error: Command not found!";
 }
@@ -124,7 +124,7 @@ String HELPER::getHelp() {
     h += " - write(const char)<br>";
     h += " - clear()<br>";
     h += " - setBrightness(int)<br>";
-    h += " - getOledStatus()<br>";
+    h += " - getStatus()<br>";
     h += " - setCursor(int, int)<br>";
     h += " - setLineHeight(int)<br>";
     h += " - setScreenSize(int, int)<br>";
