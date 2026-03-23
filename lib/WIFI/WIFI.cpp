@@ -8,6 +8,27 @@ String WIFI::getIP() { return WiFi.localIP().toString(); }
 String WIFI::getMAC() { return WiFi.macAddress(); }
 String WIFI::getSSID() { return WiFi.SSID(); }
 String WIFI::getPassword() { return WiFi.psk(); }
+String WIFI::getStatus()
+{
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        return "Connected to " + WiFi.SSID() + " with IP: " + WiFi.localIP().toString();
+    }
+    else
+    {
+        return "Not connected to WiFi.";
+    }
+}
+
+String WIFI::getStatusAll()
+{
+    String status = "<br/>MAC: " + getMAC() + "\n";
+    status += "<br/>IP: " + getIP() + "\n";
+    status += "<br/>SSID: " + getSSID() + "\n";
+    status += "<br/>Password: " + getPassword() + "\n";
+    status += "<br/>Connection Status: " + getStatus();
+    return status;
+}
 
 String WIFI::setup()
 {

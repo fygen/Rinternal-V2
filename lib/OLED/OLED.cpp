@@ -7,8 +7,12 @@ String OLED::setBrightness(int level)
         return "Hata: Parlaklık seviyesi 0-255 arasında olmalıdır.";
     }
     u8g2.setContrast(level);
+
+    u8g2.beginSimple();
+
     return "Parlaklık seviyesi ayarlandı."; // Başarılı
 }
+
 
 String OLED::getStatus()
 {

@@ -8,10 +8,11 @@
 
 WebSocketsServer webSocket = WebSocketsServer(81);
 
-void logger(String message) {
+void logger(String message)
+{
     // 1. Standart Serial'e yaz
     Serial.println(message);
-    
+
     // 2. Bağlı olan tüm web istemcilerine gönder (HTMX için)
     // Mesajı bir HTML parçası olarak gönderiyoruz ki HTMX doğrudan ekrana basabilsin
     String htmxMessage = "<div hx-swap-oob='beforeend:#log-container'>" + message + "<br></div>";
@@ -46,8 +47,15 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
         Gönder
     </button>
     <div id="terminal-res" style="color: blue; font-style: italic;"></div>
+    <div id="remote-gui" 
+     hx-get="/execute?val=HELPER getHelp" 
+     hx-trigger="load" 
+     style="margin-top:20px;">
+    Loading Control Panel...
+</div>
 </div>
 <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <div id="log-container" 
      style="height: 300px; overflow-y: auto; background: black; color: lime;"
      hx-ext="ws" ws-connect="/ws"
@@ -69,7 +77,8 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
 void SERVER::setup()
 {
     server.on("/", HTTP_GET, std::bind(&SERVER::handleRoot, this));
-    server.on("/execute", HTTP_POST, std::bind(&SERVER::handleExecute, this));
+    // server.on("/execute", HTTP_POST, std::bind(&SERVER::handleExecute, this));
+    server.on("/execute", std::bind(&SERVER::handleExecute, this));    
     server.on("/components/sensor", HTTP_GET, std::bind(&SERVER::handleSensor, this));
     server.on("/update/led", HTTP_POST, std::bind(&SERVER::handleLED, this));
     server.on("/resetwifi", HTTP_POST, std::bind(&SERVER::handleResetWiFi, this));
@@ -124,19 +133,19 @@ void SERVER::registerCommands()
 
     commandMap["fsm"] = [this](std::vector<String> args)
     {
-        if(args.size() > 0 && args[0] == "clear")
+        if (args.size() > 0 && args[0] == "clear")
         {
             sys.fsm->deletefile("/config.txt");
             server.send(200, "text/html", "FSM Config Silindi");
             return;
         }
-        else if(args.size() > 0 && args[0] == "reset")
+        else if (args.size() > 0 && args[0] == "reset")
         {
             sys.fsm->writefile("/config.txt", "default_config");
             server.send(200, "text/html", "FSM Config Sifirlandi");
             return;
         }
-        else if(args.size() > 0 && args[0] == "read")
+        else if (args.size() > 0 && args[0] == "read")
         {
             String content = sys.fsm->readfile("/config.txt");
             server.send(200, "text/html", "FSM Config Icerigi: " + content);
@@ -181,29 +190,32 @@ void SERVER::registerCommands()
             server.send(200, "text/html", "WiFi Ayarlandi: " + ssid);
             sys.wifi->connect(ssid, pass);
         }
-        else if(args.size() >= 1 && args[0] == "reset")
+        else if (args.size() >= 1 && args[0] == "reset")
         {
             sys.wifi->reset();
             server.send(200, "text/html", "WiFi Ayarları Sıfırlandı.<br> Cihazı yeniden başlatın.");
-        }else if(args.size() >= 1 && args[0] == "restart")
+        }
+        else if (args.size() >= 1 && args[0] == "restart")
         {
             sys.wifi->restart();
             server.send(200, "text/html", "Cihaz yeniden başlatılıyor.");
         }
-        else if(args.size() >= 1 && args[0] == "status")
+        else if (args.size() >= 1 && args[0] == "status")
         {
             String status = "MAC: " + sys.wifi->getMAC() + "<br>, IP: " + sys.wifi->getIP() + "<br>, SSID: " + sys.wifi->getSSID() + "<br>, Password: " + sys.wifi->getPassword();
             server.send(200, "text/html", status);
-        }   
-        else if(args.size() >= 1 && args[0] == "connect")
+        }
+        else if (args.size() >= 1 && args[0] == "connect")
         {
-            if(args.size() >= 3)
+            if (args.size() >= 3)
             {
                 String ssid = args[1];
                 String pass = args[2];
                 String result = sys.wifi->connect(ssid, pass);
                 server.send(200, "text/html", result);
-            } else {
+            }
+            else
+            {
                 server.send(200, "text/html", "Kullanim: wifi connect [ssid] [pass]");
             }
         }
@@ -237,32 +249,73 @@ void SERVER::commandParseAndExecute(String rawInput)
     }
 }
 
-
 void SERVER::handleExecute() {
+    String input = "";
+    
+    // Check both POST body and GET query parameters
     if (server.hasArg("val")) {
-        String input = server.arg("val");
+        input = server.arg("val");
+    }
+
+    if (input != "") {
+        input.trim();
         std::vector<String> tokens = HELPER::splitString(input, ' ');
         
         if(tokens.size() >= 2) {
             String module = tokens[0];
             String command = tokens[1];
             
-            // Extract remaining arguments efficiently
             std::vector<String> args;
             for(size_t i = 2; i < tokens.size(); i++) {
                 args.push_back(tokens[i]);
             }
 
             String response = HELPER::dispatchCommand(module, command, args);
-            logger("Cmd: " + input + " | Res: " + response);
             
-            // Send a response back to the HTMX target
-            server.send(200, "text/html", "Success: " + response);
+            // CRITICAL: If the response contains HTML (like getHelp), 
+            // send it with "text/html" so the browser renders it.
+            server.send(200, "text/html", response);
+            
+            logger("Cmd: " + input);
         } else {
-            server.send(200, "text/html", "Hata: Eksik parametre");
+            server.send(400, "text/plain", "Invalid Command Format");
         }
+    } else {
+        server.send(400, "text/plain", "No 'val' argument found");
     }
 }
+
+// void SERVER::handleExecute()
+// {
+//     if (server.hasArg("val"))
+//     {
+//         String input = server.arg("val");
+//         std::vector<String> tokens = HELPER::splitString(input, ' ');
+
+//         if (tokens.size() >= 2)
+//         {
+//             String module = tokens[0];
+//             String command = tokens[1];
+
+//             // Extract remaining arguments efficiently
+//             std::vector<String> args;
+//             for (size_t i = 2; i < tokens.size(); i++)
+//             {
+//                 args.push_back(tokens[i]);
+//             }
+
+//             String response = HELPER::dispatchCommand(module, command, args);
+//             logger("Cmd: " + input + " | Res: " + response);
+
+//             // Send a response back to the HTMX target
+//             server.send(200, "text/html", "Success: " + response);
+//         }
+//         else
+//         {
+//             server.send(200, "text/html", "Hata: Eksik parametre");
+//         }
+//     }
+// }
 
 // void SERVER::handleExecute()
 // {

@@ -15,6 +15,8 @@ public:
     String getMAC();
     String getSSID();
     String getPassword();
+    String getStatus();
+    String getStatusAll();
 };
 
 #endif
