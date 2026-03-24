@@ -1,10 +1,13 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
+
 class OLED;
 class WIFI;
 class SERVER;
 class FSM;
 class HELPER;
+class BATTERY;
+class TIMER;
 
 class SYSTEM {
 public:
@@ -20,6 +23,8 @@ public:
     SERVER* server;
     FSM* fsm;
     HELPER* helper;
+    BATTERY* battery;
+    TIMER* timer;
     
     // Optional: A central "Emergency Stop" or "Init All"
     void beginAll();

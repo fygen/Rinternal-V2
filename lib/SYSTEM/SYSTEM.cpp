@@ -4,14 +4,19 @@
 #include "SERVER.h"
 #include "FSM.h"
 #include "HELPER.h"
+#include "BATTERY.h"
 
 void SYSTEM::beginAll() {
+    float resistor = 4.0;
     // Nesneleri Heap üzerinde oluşturuyoruz (Pointer kullandığımız için)
     if(!oled)   oled = new OLED();
     if(!wifi)   wifi = new WIFI();
     if(!fsm)    fsm = new FSM();
     if(!server) server = new SERVER();
     if(!helper) helper = new HELPER();
+    if(!battery) battery = new BATTERY(resistor);
+    if(!timer) timer = new TIMER();
+    
 
     // Başlatma sırası
     fsm->setup();

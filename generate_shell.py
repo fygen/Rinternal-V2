@@ -6,7 +6,7 @@ output_file = "./lib/HELPER/GeneratedDispatcher.cpp"
 
 # --- CONFIGURATION ---
 EXCLUDE_FILES = ["SYSTEM.h", "InternalTest.h"] 
-EXCLUDE_METHODS = ["resetFactory", "debugInternalState", "dispatchCommand", "setup", "loop", "handleExecute", "commandParseAndExecute"]
+EXCLUDE_METHODS = ["resetFactory", "debugInternalState", "dispatchCommand", "setup", "loop", "handleExecute", "commandParseAndExecute","copyto"]
 # ------------------------------
 
 method_pattern = r"(\w+[\s\*&]+)(\w+)\s*\((.*?)\);"
