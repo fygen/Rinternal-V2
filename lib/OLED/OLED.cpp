@@ -1,5 +1,33 @@
 #include "OLED.h"
 
+String OLED::setInverse(bool isInverse) {
+    u8g2.setBitmapMode(isInverse); // Karakter bazlı tersleme
+    // Veya tüm ekranı donanımsal olarak ters çevirmek için:
+    // u8g2.sendF("c", isInverse ? 0xA7 : 0xA6); 
+    return isInverse ? "Ters mod etkinlestirildi." : "Ters mod devre disi birakildi.";
+}
+
+String OLED::drawProgressBar(int x, int y, int w, int h, int percentage) {
+    if (percentage > 100) percentage = 100;
+    if (percentage < 0) percentage = 0;
+    
+    // Dış çerçeve
+    u8g2.drawFrame(x, y, w, h);
+    // İç doluluk
+    int barWidth = ((w - 4) * percentage) / 100;
+    u8g2.drawBox(x + 2, y + 2, barWidth, h - 4);
+    u8g2.sendBuffer();
+    return "İlerleme çubuğu çizildi.";
+}
+
+String OLED::drawCentered(int y, const char* message) {
+    int w = u8g2.getStrWidth(message);
+    int x = (screenWidth - w) / 2;
+    u8g2.drawStr(x, y, message);
+    u8g2.sendBuffer();
+    return "Metin ortalandı.";
+}
+
 String OLED::setBrightness(int level)
 {
     if (level < 0 || level > 255)
