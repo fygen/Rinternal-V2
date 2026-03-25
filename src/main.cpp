@@ -20,5 +20,6 @@ void setup() {
 
 void loop() {
     // Sadece server ve wifi gibi sürekli çalışması gereken modülleri döngüye sok
+        Serial.printf("Free Heap: %u bytes\n", ESP.getFreeHeap());
     sys.server->loop();
 }

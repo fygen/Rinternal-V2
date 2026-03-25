@@ -31,8 +31,9 @@ public:
 
 private:
     // Private constructor: stops anyone from doing "SYSTEM mySys;"
-    SYSTEM() : oled(nullptr), wifi(nullptr), server(nullptr), fsm(nullptr) {
+    SYSTEM() : oled(nullptr), wifi(nullptr), server(nullptr), fsm(nullptr), helper(nullptr), battery(nullptr), timer(nullptr) {
         // Constructor boş, çünkü beginAll()'de başlatacağız
+        
     }
     
     // Stop copying the manager
