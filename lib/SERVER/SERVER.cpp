@@ -272,9 +272,13 @@ void SERVER::handleExecute() {
 
             String response = HELPER::dispatchCommand(module, command, args);
             
-            // CRITICAL: If the response contains HTML (like getHelp), 
-            // send it with "text/html" so the browser renders it.
-            server.send(200, "text/html", response);
+            if (module.equalsIgnoreCase("HELPER") && command.equalsIgnoreCase("getCommandsJSON")) {
+                server.send(200, "application/json", response);
+            } else {
+                // CRITICAL: If the response contains HTML (like getHelp), 
+                // send it with "text/html" so the browser renders it.
+                server.send(200, "text/html", response);
+            }
             
             logger("Cmd: " + input);
         } else {

@@ -10,7 +10,8 @@ public:
     static String dispatchCommand(String mod, String cmd, std::vector<String> args);
     static String wtf();
     bool copyto(char *response, const char* format, ...);
-    static String getHelp(); // Add this line
+    static String getHelp();
+    static String getCommandsJSON();
 private:
     char _response[255];
 

@@ -57,6 +57,10 @@ with open(output_file, "w", encoding="utf-8") as f:
     # --- dispatchCommand Implementation ---
     f.write('\nString HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args) {\n')
     
+    # Special case for HELPER methods that might not be in the commands list
+    f.write('    if (mod.equalsIgnoreCase("HELPER") && cmd.equalsIgnoreCase("getHelp")) return getHelp();\n')
+    f.write('    if (mod.equalsIgnoreCase("HELPER") && cmd.equalsIgnoreCase("getCommandsJSON")) return getCommandsJSON();\n')
+
     for cmd in commands:
         num_params = len(cmd['params'])
         f.write(f'    if (mod.equalsIgnoreCase("{cmd["module"]}") && cmd.equalsIgnoreCase("{cmd["name"]}")) {{\n')
@@ -87,6 +91,26 @@ with open(output_file, "w", encoding="utf-8") as f:
         f.write('    }\n')
     
     f.write('\n    return "Error: Command not found!";\n}\n')
+
+    # --- getCommandsJSON Implementation ---
+    f.write('\nString HELPER::getCommandsJSON() {\n')
+    f.write('    String j = "[";\n')
+    for i, cmd in enumerate(commands):
+        f.write('    j += "{";\n')
+        f.write(f'    j += "\\"module\\": \\"{cmd["module"]}\\", ";\n')
+        f.write(f'    j += "\\"name\\": \\"{cmd["name"]}\\", ";\n')
+        f.write('    j += "\\"params\\": [";\n')
+        for pi, p_type in enumerate(cmd['params']):
+            f.write(f'    j += "\\"{p_type}\\"";\n')
+            if pi < len(cmd['params']) - 1:
+                f.write('    j += ", ";\n')
+        f.write('    j += "]";\n')
+        f.write('    j += "}";\n')
+        if i < len(commands) - 1:
+            f.write('    j += ", ";\n')
+    f.write('    j += "]";\n')
+    f.write('    return j;\n')
+    f.write('}\n')
 
     # --- getHelp Implementation (THE CONTROL PANEL) ---
     f.write('\nString HELPER::getHelp() {\n')
