@@ -40,19 +40,14 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
     <button hx-post="/resetwifi" hx-confirm="Emin misiniz?">WiFi Reset</button>
     <div id="terminal-section" style="margin-top:20px; border:1px solid #ccc; padding:10px;">
     <h3>System Terminal</h3>
-    <input type="text" name="cmd" placeholder="Mesaj yaz..." id="cmd-input">
+    <input type="text" name="cmd" placeholder="Mesaj yaz..." id="cmd-input" list="cmd-options">
+    <datalist id="cmd-options"></datalist>
     <button hx-post="/execute" 
             hx-vals='js:{val: document.getElementById("cmd-input").value}'
             hx-target="#terminal-res">
         Gönder
     </button>
     <div id="terminal-res" style="color: blue; font-style: italic;"></div>
-    <div id="remote-gui" 
-     hx-get="/execute?val=HELPER getHelp" 
-     hx-trigger="load" 
-     style="margin-top:20px;">
-    Loading Control Panel...
-</div>
 </div>
 <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
@@ -63,12 +58,44 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
     </div>
 
 <script>
+    // System Terminal Datalist Population
+    async function populateCommands() {
+        try {
+            const response = await fetch('/execute?val=HELPER getCommandsJSON');
+            const data = await response.json();
+            const datalist = document.getElementById('cmd-options');
+            datalist.innerHTML = '';
+            
+            // Use a Set to avoid duplicate module+name entries
+            const commandSet = new Set();
+            
+            data.forEach(item => {
+                const cmdStr = item.module + ' ' + item.name;
+                if (!commandSet.has(cmdStr)) {
+                    commandSet.add(cmdStr);
+                    const option = document.createElement('option');
+                    option.value = cmdStr;
+                    // Add parameters as hint if available
+                    if (item.params && item.params.length > 0) {
+                        option.label = "(" + item.params.join(', ') + ")";
+                    }
+                    datalist.appendChild(option);
+                }
+            });
+        } catch (error) {
+            console.error('Error loading commands:', error);
+        }
+    }
+
     // MutationObserver ile yeni log geldiğinde kaydırma yapabiliriz
     const container = document.getElementById('log-container');
     const observer = new MutationObserver(() => {
         container.scrollTop = container.scrollHeight;
     });
     observer.observe(container, { childList: true });
+
+    // Initialize datalist on load
+    window.addEventListener('load', populateCommands);
 </script>
 </body>
 </html>
