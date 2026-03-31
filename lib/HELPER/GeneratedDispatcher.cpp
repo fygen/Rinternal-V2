@@ -16,12 +16,20 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
     if (mod.equalsIgnoreCase("HELPER") && cmd.equalsIgnoreCase("getCommandsJSON")) return getCommandsJSON();
     if (mod.equalsIgnoreCase("SERVER") && cmd.equalsIgnoreCase("logger")) {
         if (args.size() < 1) return "Error: 1 params required!";
-        sys.server->logger(args[0]);
+        String joinedArgs0 = "";
+        for(size_t j = 0; j < args.size(); j++) {
+            joinedArgs0 += args[j] + (j < args.size() - 1 ? " " : "");
+        }
+        sys.server->logger(joinedArgs0);
         return "OK";
     }
     if (mod.equalsIgnoreCase("SYSTEM") && cmd.equalsIgnoreCase("addToQueue")) {
         if (args.size() < 1) return "Error: 1 params required!";
-        sys.addToQueue(args[0]);
+        String joinedArgs0 = "";
+        for(size_t j = 0; j < args.size(); j++) {
+            joinedArgs0 += args[j] + (j < args.size() - 1 ? " " : "");
+        }
+        sys.addToQueue(joinedArgs0);
         return "OK";
     }
     if (mod.equalsIgnoreCase("SYSTEM") && cmd.equalsIgnoreCase("updateQueue")) {
@@ -31,12 +39,20 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
     }
     if (mod.equalsIgnoreCase("SYSTEM") && cmd.equalsIgnoreCase("automate")) {
         if (args.size() < 1) return "Error: 1 params required!";
-        sys.automate(args[0]);
+        String joinedArgs0 = "";
+        for(size_t j = 0; j < args.size(); j++) {
+            joinedArgs0 += args[j] + (j < args.size() - 1 ? " " : "");
+        }
+        sys.automate(joinedArgs0);
         return "OK";
     }
     if (mod.equalsIgnoreCase("OLED") && cmd.equalsIgnoreCase("write")) {
         if (args.size() < 1) return "Error: 1 params required!";
-        return String(sys.oled->write(args[0]));
+        String joinedArgs0 = "";
+        for(size_t j = 0; j < args.size(); j++) {
+            joinedArgs0 += args[j] + (j < args.size() - 1 ? " " : "");
+        }
+        return String(sys.oled->write(joinedArgs0));
     }
     if (mod.equalsIgnoreCase("OLED") && cmd.equalsIgnoreCase("write")) {
         if (args.size() < 1) return "Error: 1 params required!";
@@ -77,7 +93,11 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
     }
     if (mod.equalsIgnoreCase("OLED") && cmd.equalsIgnoreCase("drawCentered")) {
         if (args.size() < 2) return "Error: 2 params required!";
-        return String(sys.oled->drawCentered(args[0].toInt(), args[1].c_str()));
+        String joinedArgs1 = "";
+        for(size_t j = 1; j < args.size(); j++) {
+            joinedArgs1 += args[j] + (j < args.size() - 1 ? " " : "");
+        }
+        return String(sys.oled->drawCentered(args[0].toInt(), joinedArgs1.c_str()));
     }
     if (mod.equalsIgnoreCase("BATTERY") && cmd.equalsIgnoreCase("begin")) {
         if (args.size() < 0) return "Error: 0 params required!";
@@ -131,7 +151,11 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
     }
     if (mod.equalsIgnoreCase("WIFI") && cmd.equalsIgnoreCase("connect")) {
         if (args.size() < 2) return "Error: 2 params required!";
-        return String(sys.wifi->connect(args[0], args[1]));
+        String joinedArgs1 = "";
+        for(size_t j = 1; j < args.size(); j++) {
+            joinedArgs1 += args[j] + (j < args.size() - 1 ? " " : "");
+        }
+        return String(sys.wifi->connect(args[0], joinedArgs1));
     }
     if (mod.equalsIgnoreCase("WIFI") && cmd.equalsIgnoreCase("restart")) {
         if (args.size() < 0) return "Error: 0 params required!";
@@ -187,7 +211,11 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
     }
     if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("writefile")) {
         if (args.size() < 2) return "Error: 2 params required!";
-        return String(sys.fsm->writefile(args[0].c_str(), args[1]));
+        String joinedArgs1 = "";
+        for(size_t j = 1; j < args.size(); j++) {
+            joinedArgs1 += args[j] + (j < args.size() - 1 ? " " : "");
+        }
+        return String(sys.fsm->writefile(args[0].c_str(), joinedArgs1));
     }
     if (mod.equalsIgnoreCase("FSM") && cmd.equalsIgnoreCase("deletefile")) {
         if (args.size() < 1) return "Error: 1 params required!";

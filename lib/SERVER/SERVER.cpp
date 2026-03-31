@@ -256,7 +256,7 @@ void SERVER::registerCommands()
 void SERVER::commandParseAndExecute(String rawInput)
 {
     rawInput.trim();
-    std::vector<String> tokens = HELPER::splitString(rawInput, ' ');
+    std::vector<String> tokens = HELPER::smartTokenize(rawInput);
 
     if (tokens.empty())
         return;
@@ -286,7 +286,7 @@ void SERVER::handleExecute() {
 
     if (input != "") {
         input.trim();
-        std::vector<String> tokens = HELPER::splitString(input, ' ');
+        std::vector<String> tokens = HELPER::smartTokenize(input);
         
         if(tokens.size() >= 2) {
             String module = tokens[0];

@@ -61,7 +61,7 @@ void SYSTEM::updateQueue() {
     // --- DURUM 2: ŞARTLI BEKLEME (WAIT_UNTIL MODUL KOMUT) ---
     if (currentLine.startsWith("WAIT_UNTIL ")) {
         String sub = currentLine.substring(11); // "WIFI isConnected"
-        std::vector<String> tokens = HELPER::splitString(sub, ' ');
+        std::vector<String> tokens = HELPER::smartTokenize(sub);
         
         if (tokens.size() >= 2) {
             // Şartı kontrol etmek için dispatcher'ı çalıştır
@@ -77,7 +77,7 @@ void SYSTEM::updateQueue() {
     }
 
     // --- DURUM 3: NORMAL KOMUT ÇALIŞTIRMA ---
-    std::vector<String> tokens = HELPER::splitString(currentLine, ' ');
+    std::vector<String> tokens = HELPER::smartTokenize(currentLine);
     if (tokens.size() >= 2) {
         String mod = tokens[0];
         String cmd = tokens[1];

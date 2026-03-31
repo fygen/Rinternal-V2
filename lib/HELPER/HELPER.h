@@ -7,6 +7,7 @@
 class HELPER {
 public:
     static std::vector<String> splitString(String str, char delimiter);
+    static std::vector<String> smartTokenize(String input);
     static String dispatchCommand(String mod, String cmd, std::vector<String> args);
     static String wtf();
     bool copyto(char *response, const char* format, ...);
