@@ -18,9 +18,12 @@ bool FSM::setup()
 // @shell: readfile (dosyayolu)
 String FSM::readfile(const char *path)
 {
-    File file = LittleFS.open(path, "r");
+    String safePath = path;
+    if (!safePath.startsWith("/")) safePath = "/" + safePath;
+    
+    File file = LittleFS.open(safePath, "r");
     if (!file || file.isDirectory())
-        return "";
+        return "ERROR: File Not Found";
     String content = file.readString();
     file.close();
     return content;
@@ -29,7 +32,10 @@ String FSM::readfile(const char *path)
 // Dosyaya yaz (üzerine yazar)
 bool FSM::writefile(const char *path, const String &content)
 {
-    File file = LittleFS.open(path, "w");
+    String safePath = path;
+    if (!safePath.startsWith("/")) safePath = "/" + safePath;
+
+    File file = LittleFS.open(safePath, "w");
     if (!file)
         return false;
     bool success = file.print(content);
@@ -40,7 +46,9 @@ bool FSM::writefile(const char *path, const String &content)
 // Dosyayı sil
 bool FSM::deletefile(const char *path)
 {
-    return LittleFS.remove(path);
+    String safePath = path;
+    if (!safePath.startsWith("/")) safePath = "/" + safePath;
+    return LittleFS.remove(safePath);
 }
 
 // Dosya listesini ANLIK olarak oluştur (RAM tasarrufu)
@@ -57,5 +65,7 @@ String FSM::getfilelist()
 
 bool FSM::fileexists(const char *path)
 {
-    return LittleFS.exists(path);
+    String safePath = path;
+    if (!safePath.startsWith("/")) safePath = "/" + safePath;
+    return LittleFS.exists(safePath);
 }

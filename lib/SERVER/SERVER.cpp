@@ -14,8 +14,11 @@ void SERVER::logger(String message)
     Serial.println(message);
 
     // 2. Bağlı olan tüm web istemcilerine gönder (HTMX için)
-    // Mesajı bir HTML parçası olarak gönderiyoruz ki HTMX doğrudan ekrana basabilsin
-    String htmxMessage = "<div hx-swap-oob='beforeend:#log-container'>" + message + "<br></div>";
+    // HTML'de alt satıra geçmek için \n -> <br> yapıyoruz
+    String webMessage = message;
+    webMessage.replace("\n", "<br>");
+    
+    String htmxMessage = "<div hx-swap-oob='beforeend:#ws-logs'>" + webMessage + "<br></div>";
     webSocket.broadcastTXT(htmxMessage);
 }
 
@@ -26,36 +29,39 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
 <head>
     <title>ESP8266 Control</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <style>body { font-family: sans-serif; text-align: center; padding: 20px; }</style>
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #121212; color: #e0e0e0; }
+        #terminal-section { margin-top:20px; border:1px solid #444; padding:15px; background: #1e1e1e; border-radius: 8px; }
+        textarea { width: 95%; height: 120px; background: #222; color: #fff; border: 1px solid #555; padding: 10px; border-radius: 4px; font-family: monospace; }
+        button { background: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #388e3c; }
+        #log-container { height: 400px; overflow-y: auto; background: #000; color: #00ff00; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: left; font-family: 'Courier New', Courier, monospace; border: 1px solid #333; }
+        #terminal-res { color: #81d4fa; font-style: italic; margin-top: 10px; }
+    </style>
 </head>
 <body>
-    <h1>Smart Home Dashboard</h1>
-    <div id="sensor-data" hx-get="/components/sensor" hx-trigger="every 2s">Loading...</div>
-    <hr>
-    <div id="led-control">
-        <button hx-post="/update/led" hx-target="#led-status">Toggle Light</button>
-        Status: <span id="led-status">OFF</span>
+    <h1>Rinternal V2 Dashboard</h1>
+    <div id="sensor-data" hx-get="/components/sensor" hx-trigger="every 5s">Loading sensors...</div>
+    <hr style="border: 0; border-top: 1px solid #333;">
+    
+    <div id="terminal-section">
+        <h3>System Terminal</h3>
+        <input list="cmd-options" id="cmd-autocomplete" placeholder="Hizli komut sec..." style="width: 95%; background: #333; color: #fff; border: 1px solid #555; padding: 8px; margin-bottom: 5px; border-radius: 4px;">
+        <datalist id="cmd-options"></datalist>
+        <textarea name="cmd" placeholder="Komut veya Script yaz..." id="cmd-input"></textarea>
+        <br>
+        <button hx-post="/execute" 
+                hx-vals='js:{val: document.getElementById("cmd-input").value}'
+                hx-target="#terminal-res">
+            Gonder
+        </button>
+        <div id="terminal-res"></div>
     </div>
-    <hr>
-    <button hx-post="/resetwifi" hx-confirm="Emin misiniz?">WiFi Reset</button>
-    <div id="terminal-section" style="margin-top:20px; border:1px solid #ccc; padding:10px;">
-    <h3>System Terminal</h3>
-    <textarea name="cmd" placeholder="Komut veya Script yaz..." id="cmd-input" list="cmd-options" style="width: 90%; height: 100px; background: #222; color: #fff;"></textarea>
-    <datalist id="cmd-options"></datalist>
-    <br>
-    <button hx-post="/execute" 
-            hx-vals='js:{val: document.getElementById("cmd-input").value}'
-            hx-target="#terminal-res">
-        Gönder
-    </button>
-    <div id="terminal-res" style="color: blue; font-style: italic;"></div>
-</div>
-<script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
-<script src="https://unpkg.com/htmx.org@1.9.10"></script>
-<div id="log-container" 
-     style="height: 300px; overflow-y: auto; background: black; color: lime;"
-     hx-ext="ws" ws-connect="/ws"
-     onlineadded="this.scrollTop = this.scrollHeight">
+
+    <div id="log-container" 
+         hx-ext="ws" ws-connect="ws://' + window.location.hostname + ':81">
+         <div id="ws-logs"></div>
     </div>
 
 <script>
@@ -66,36 +72,37 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
             const data = await response.json();
             const datalist = document.getElementById('cmd-options');
             datalist.innerHTML = '';
-            
-            // Use a Set to avoid duplicate module+name entries
             const commandSet = new Set();
-            
             data.forEach(item => {
                 const cmdStr = item.module + ' ' + item.name;
                 if (!commandSet.has(cmdStr)) {
                     commandSet.add(cmdStr);
                     const option = document.createElement('option');
                     option.value = cmdStr;
-                    // Add parameters as hint if available
-                    if (item.params && item.params.length > 0) {
-                        option.label = "(" + item.params.join(', ') + ")";
-                    }
                     datalist.appendChild(option);
                 }
             });
-        } catch (error) {
-            console.error('Error loading commands:', error);
-        }
+        } catch (error) { console.error('Error loading commands:', error); }
     }
 
-    // MutationObserver ile yeni log geldiğinde kaydırma yapabiliriz
+    // Autocomplete'den textarea'ya aktarim
+    document.getElementById('cmd-autocomplete').addEventListener('input', function(e) {
+        if(e.target.value) {
+            const area = document.getElementById('cmd-input');
+            if(area.value.length > 0 && !area.value.endsWith('\n')) area.value += '\n';
+            area.value += e.target.value;
+            e.target.value = ''; // Reset autocomplete input
+            area.focus();
+        }
+    });
+
+    // WebSocket Log Scroll
     const container = document.getElementById('log-container');
     const observer = new MutationObserver(() => {
         container.scrollTop = container.scrollHeight;
     });
-    observer.observe(container, { childList: true });
+    observer.observe(container, { childList: true, subtree: true });
 
-    // Initialize datalist on load
     window.addEventListener('load', populateCommands);
 </script>
 </body>
