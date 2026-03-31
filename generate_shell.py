@@ -56,6 +56,9 @@ with open(output_file, "w", encoding="utf-8") as f:
     
     # --- dispatchCommand Implementation ---
     f.write('\nString HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args) {\n')
+    f.write('    String logMsg = "[CMD] " + mod + " " + cmd;\n')
+    f.write('    for(const auto& a : args) logMsg += " \'" + a + "\'";\n')
+    f.write('    sys.server->logger(logMsg);\n\n')
     
     # Special case for HELPER methods that might not be in the commands list
     f.write('    if (mod.equalsIgnoreCase("HELPER") && cmd.equalsIgnoreCase("getHelp")) return getHelp();\n')
@@ -64,7 +67,11 @@ with open(output_file, "w", encoding="utf-8") as f:
     for cmd in commands:
         num_params = len(cmd['params'])
         f.write(f'    if (mod.equalsIgnoreCase("{cmd["module"]}") && cmd.equalsIgnoreCase("{cmd["name"]}")) {{\n')
-        f.write(f'        if (args.size() < {num_params}) return "Error: {num_params} params required!";\n')
+        f.write(f'        if (args.size() < {num_params}) {{\n')
+        f.write(f'            String err = "Error: {num_params} params required!";\n')
+        f.write('            sys.server->logger("[RES] " + err);\n')
+        f.write('            return err;\n')
+        f.write('        }\n')
         
         call_args = []
         for i, p_type in enumerate(cmd['params']):
@@ -102,12 +109,18 @@ with open(output_file, "w", encoding="utf-8") as f:
         
         ret = cmd['ret'].lower()
         if "void" in ret:
-            f.write(f'        {instance}{cmd["name"]}({args_str});\n        return "OK";\n')
+            f.write(f'        {instance}{cmd["name"]}({args_str});\n')
+            f.write('        sys.server->logger("[RES] OK");\n')
+            f.write('        return "OK";\n')
         else:
-            f.write(f'        return String({instance}{cmd["name"]}({args_str}));\n')
+            f.write(f'        String res = String({instance}{cmd["name"]}({args_str}));\n')
+            f.write('        sys.server->logger("[RES] " + res);\n')
+            f.write('        return res;\n')
         f.write('    }\n')
     
-    f.write('\n    return "Error: Command not found!";\n}\n')
+    f.write('\n    String finalErr = "Error: Command not found!";\n')
+    f.write('    sys.server->logger("[RES] " + finalErr);\n')
+    f.write('    return finalErr;\n}\n')
 
     # --- getCommandsJSON Implementation ---
     f.write('\nString HELPER::getCommandsJSON() {\n')
