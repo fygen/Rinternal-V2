@@ -8,7 +8,7 @@
 
 WebSocketsServer webSocket = WebSocketsServer(81);
 
-void logger(String message)
+void SERVER::logger(String message)
 {
     // 1. Standart Serial'e yaz
     Serial.println(message);

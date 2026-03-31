@@ -6,12 +6,34 @@
 #include "FSM.h"
 #include "HELPER.h"
 #include "OLED.h"
+#include "SERVER.h"
+#include "SYSTEM.h"
 #include "TIMER.h"
 #include "WIFI.h"
 
 String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args) {
     if (mod.equalsIgnoreCase("HELPER") && cmd.equalsIgnoreCase("getHelp")) return getHelp();
     if (mod.equalsIgnoreCase("HELPER") && cmd.equalsIgnoreCase("getCommandsJSON")) return getCommandsJSON();
+    if (mod.equalsIgnoreCase("SERVER") && cmd.equalsIgnoreCase("logger")) {
+        if (args.size() < 1) return "Error: 1 params required!";
+        sys.server->logger(args[0]);
+        return "OK";
+    }
+    if (mod.equalsIgnoreCase("SYSTEM") && cmd.equalsIgnoreCase("addToQueue")) {
+        if (args.size() < 1) return "Error: 1 params required!";
+        sys.addToQueue(args[0]);
+        return "OK";
+    }
+    if (mod.equalsIgnoreCase("SYSTEM") && cmd.equalsIgnoreCase("updateQueue")) {
+        if (args.size() < 0) return "Error: 0 params required!";
+        sys.updateQueue();
+        return "OK";
+    }
+    if (mod.equalsIgnoreCase("SYSTEM") && cmd.equalsIgnoreCase("automate")) {
+        if (args.size() < 1) return "Error: 1 params required!";
+        sys.automate(args[0]);
+        return "OK";
+    }
     if (mod.equalsIgnoreCase("OLED") && cmd.equalsIgnoreCase("write")) {
         if (args.size() < 1) return "Error: 1 params required!";
         return String(sys.oled->write(args[0]));
@@ -185,6 +207,37 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
 
 String HELPER::getCommandsJSON() {
     String j = "[";
+    j += "{";
+    j += "\"module\": \"SERVER\", ";
+    j += "\"name\": \"logger\", ";
+    j += "\"params\": [";
+    j += "\"String\"";
+    j += "]";
+    j += "}";
+    j += ", ";
+    j += "{";
+    j += "\"module\": \"SYSTEM\", ";
+    j += "\"name\": \"addToQueue\", ";
+    j += "\"params\": [";
+    j += "\"String\"";
+    j += "]";
+    j += "}";
+    j += ", ";
+    j += "{";
+    j += "\"module\": \"SYSTEM\", ";
+    j += "\"name\": \"updateQueue\", ";
+    j += "\"params\": [";
+    j += "]";
+    j += "}";
+    j += ", ";
+    j += "{";
+    j += "\"module\": \"SYSTEM\", ";
+    j += "\"name\": \"automate\", ";
+    j += "\"params\": [";
+    j += "\"String\"";
+    j += "]";
+    j += "}";
+    j += ", ";
     j += "{";
     j += "\"module\": \"OLED\", ";
     j += "\"name\": \"write\", ";
@@ -649,6 +702,27 @@ String HELPER::getHelp() {
     h += "<input id='input_OLED_drawCentered_26_1' placeholder='const char*' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ";
     h += "<button hx-post='/execute' hx-vals=\"js:{val: 'OLED drawCentered ' + document.getElementById('input_OLED_drawCentered_26_0').value + ' ' + document.getElementById('input_OLED_drawCentered_26_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>";
     h += "</div>";
+    h += "<h3 style='color:#FF9800; border-bottom:1px solid #444; margin-bottom:10px;'>SERVER</h3>";
+    h += "<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>";
+    h += "<strong>logger</strong><br>";
+    h += "<input id='input_SERVER_logger_27_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ";
+    h += "<button hx-post='/execute' hx-vals=\"js:{val: 'SERVER logger ' + document.getElementById('input_SERVER_logger_27_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>";
+    h += "</div>";
+    h += "<h3 style='color:#FF9800; border-bottom:1px solid #444; margin-bottom:10px;'>SYSTEM</h3>";
+    h += "<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>";
+    h += "<strong>addToQueue</strong><br>";
+    h += "<input id='input_SYSTEM_addToQueue_28_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ";
+    h += "<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM addToQueue ' + document.getElementById('input_SYSTEM_addToQueue_28_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>";
+    h += "</div>";
+    h += "<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>";
+    h += "<strong>updateQueue</strong><br>";
+    h += "<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM updateQueue'}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>";
+    h += "</div>";
+    h += "<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>";
+    h += "<strong>automate</strong><br>";
+    h += "<input id='input_SYSTEM_automate_30_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ";
+    h += "<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM automate ' + document.getElementById('input_SYSTEM_automate_30_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>";
+    h += "</div>";
     h += "<h3 style='color:#FF9800; border-bottom:1px solid #444; margin-bottom:10px;'>TIMER</h3>";
     h += "<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>";
     h += "<strong>start</strong><br>";
@@ -656,8 +730,8 @@ String HELPER::getHelp() {
     h += "</div>";
     h += "<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>";
     h += "<strong>isExpired</strong><br>";
-    h += "<input id='input_TIMER_isExpired_28_0' placeholder='unsigned long' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ";
-    h += "<button hx-post='/execute' hx-vals=\"js:{val: 'TIMER isExpired ' + document.getElementById('input_TIMER_isExpired_28_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>";
+    h += "<input id='input_TIMER_isExpired_32_0' placeholder='unsigned long' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ";
+    h += "<button hx-post='/execute' hx-vals=\"js:{val: 'TIMER isExpired ' + document.getElementById('input_TIMER_isExpired_32_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>";
     h += "</div>";
     h += "<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>";
     h += "<strong>getElapsedMillis</strong><br>";
@@ -678,9 +752,9 @@ String HELPER::getHelp() {
     h += "</div>";
     h += "<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>";
     h += "<strong>connect</strong><br>";
-    h += "<input id='input_WIFI_connect_33_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ";
-    h += "<input id='input_WIFI_connect_33_1' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ";
-    h += "<button hx-post='/execute' hx-vals=\"js:{val: 'WIFI connect ' + document.getElementById('input_WIFI_connect_33_0').value + ' ' + document.getElementById('input_WIFI_connect_33_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>";
+    h += "<input id='input_WIFI_connect_37_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ";
+    h += "<input id='input_WIFI_connect_37_1' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ";
+    h += "<button hx-post='/execute' hx-vals=\"js:{val: 'WIFI connect ' + document.getElementById('input_WIFI_connect_37_0').value + ' ' + document.getElementById('input_WIFI_connect_37_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>";
     h += "</div>";
     h += "<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>";
     h += "<strong>restart</strong><br>";

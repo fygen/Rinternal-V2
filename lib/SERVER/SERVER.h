@@ -12,6 +12,7 @@ public:
     void loop();
     void handleExecute();
     void commandParseAndExecute(String rawInput);
+    void logger(String message);
 
 private:
     ESP8266WebServer server;
