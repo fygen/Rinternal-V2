@@ -5,8 +5,8 @@ search_path = "./lib"
 output_file = "./lib/HELPER/GeneratedDispatcher.cpp"
 
 # --- CONFIGURATION ---
-EXCLUDE_FILES = ["SYSTEM.h", "InternalTest.h"] 
-EXCLUDE_METHODS = ["resetFactory", "debugInternalState", "dispatchCommand", "setup", "loop", "handleExecute", "commandParseAndExecute","copyto"]
+EXCLUDE_FILES = ["InternalTest.h"] 
+EXCLUDE_METHODS = ["getInstance", "beginAll", "resetFactory", "debugInternalState", "dispatchCommand", "setup", "loop", "handleExecute", "commandParseAndExecute","copyto"]
 # ------------------------------
 
 method_pattern = r"(\w+[\s\*&]+)(\w+)\s*\((.*?)\);"
@@ -69,19 +69,36 @@ with open(output_file, "w", encoding="utf-8") as f:
         call_args = []
         for i, p_type in enumerate(cmd['params']):
             pt = p_type.lower()
-            if any(x in pt for x in ["int", "long", "short"]):
-                call_args.append(f"args[{i}].toInt()")
-            elif any(x in pt for x in ["float", "double"]):
-                call_args.append(f"args[{i}].toFloat()")
-            elif "bool" in pt:
-                call_args.append(f"(args[{i}].equalsIgnoreCase(\"true\") || args[{i}] == \"1\")")
-            elif "char" in pt:
-                call_args.append(f"args[{i}].c_str()")
+            is_last = (i == num_params - 1)
+            
+            # Greedy join for the last parameter if it's a string/char*
+            if is_last and ("string" in pt or "char*" in pt or "char *" in pt):
+                f.write(f'        String joinedArgs{i} = "";\n')
+                f.write(f'        for(size_t j = {i}; j < args.size(); j++) {{\n')
+                f.write(f'            joinedArgs{i} += args[j] + (j < args.size() - 1 ? " " : "");\n')
+                f.write(f'        }}\n')
+                
+                if "char" in pt:
+                    call_args.append(f"joinedArgs{i}.c_str()")
+                else:
+                    call_args.append(f"joinedArgs{i}")
             else:
-                call_args.append(f"args[{i}]")
+                if any(x in pt for x in ["int", "long", "short"]):
+                    call_args.append(f"args[{i}].toInt()")
+                elif any(x in pt for x in ["float", "double"]):
+                    call_args.append(f"args[{i}].toFloat()")
+                elif "bool" in pt:
+                    call_args.append(f"(args[{i}].equalsIgnoreCase(\"true\") || args[{i}] == \"1\")")
+                elif "char" in pt:
+                    call_args.append(f"args[{i}].c_str()")
+                else:
+                    call_args.append(f"args[{i}]")
         
         args_str = ", ".join(call_args)
-        instance = f"sys.{cmd['module'].lower()}->"
+        if cmd['module'].lower() == "system":
+            instance = "sys."
+        else:
+            instance = f"sys.{cmd['module'].lower()}->"
         
         ret = cmd['ret'].lower()
         if "void" in ret:
