@@ -29,6 +29,10 @@ void SYSTEM::beginAll() {
 }
 
 void SYSTEM::addToQueue(String script) {
+    // Both real \n and escaped \n handle
+    script.replace("\\n", "\n");
+    script.replace("\\r", "\r");
+    
     std::vector<String> lines = HELPER::splitString(script, '\n');
     for (String line : lines) {
         line.trim();
@@ -49,10 +53,11 @@ void SYSTEM::updateQueue() {
         if (!_isWaitingMillis) {
             _waitStartTime = millis();
             _isWaitingMillis = true;
-            server->logger("Zamanlayici basladi: " + String(ms) + "ms");
+            server->logger("[QUEUE] Waiting " + String(ms) + "ms...");
         }
         if (millis() - _waitStartTime >= (unsigned long)ms) {
             _isWaitingMillis = false;
+            server->logger("[QUEUE] Wait Done.");
             commandQueue.pop(); // Süre doldu, sıradakine geç
         }
         return;
@@ -69,7 +74,7 @@ void SYSTEM::updateQueue() {
             
             // Eğer cevap "true", "1", "OK" veya "Connected" ise geç
             if (result.equalsIgnoreCase("true") || result == "1" || result.equalsIgnoreCase("OK") || result.equalsIgnoreCase("Connected")) {
-                server->logger("Sart Saglandi: " + tokens[1]);
+                server->logger("[QUEUE] Condition met: " + tokens[1]);
                 commandQueue.pop();
             }
         }
@@ -84,13 +89,8 @@ void SYSTEM::updateQueue() {
         std::vector<String> args;
         for(size_t i=2; i<tokens.size(); i++) args.push_back(tokens[i]);
 
-        // Komutu çalıştır ve sonucunu al
-        String response = HELPER::dispatchCommand(mod, cmd, args);
-        
-        // Geri bildirimleri gönder
-        String feedback = "[" + mod + "]: " + response;
-        oled->write(feedback);
-        server->logger(feedback);
+        // Komutu çalıştır ve sonucunu al (Loglama dispatchCommand içinde yapılıyor)
+        HELPER::dispatchCommand(mod, cmd, args);
         
         commandQueue.pop(); // Komut işlendi, kuyruktan at
     } else {

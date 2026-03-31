@@ -40,8 +40,9 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
     <button hx-post="/resetwifi" hx-confirm="Emin misiniz?">WiFi Reset</button>
     <div id="terminal-section" style="margin-top:20px; border:1px solid #ccc; padding:10px;">
     <h3>System Terminal</h3>
-    <input type="text" name="cmd" placeholder="Mesaj yaz..." id="cmd-input" list="cmd-options">
+    <textarea name="cmd" placeholder="Komut veya Script yaz..." id="cmd-input" list="cmd-options" style="width: 90%; height: 100px; background: #222; color: #fff;"></textarea>
     <datalist id="cmd-options"></datalist>
+    <br>
     <button hx-post="/execute" 
             hx-vals='js:{val: document.getElementById("cmd-input").value}'
             hx-target="#terminal-res">
@@ -112,12 +113,14 @@ void SERVER::setup()
     server.onNotFound(std::bind(&SERVER::handleNotFound, this));
 
     server.begin();
-    Serial.println("HTMX Server Started");
+    webSocket.begin();
+    Serial.println("HTMX Server & WebSocket Started");
 }
 
 void SERVER::loop()
 {
     server.handleClient();
+    webSocket.loop();
 }
 
 void SERVER::handleRoot()
