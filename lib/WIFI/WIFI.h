@@ -17,6 +17,7 @@ public:
     String getPassword();
     String getStatus();
     String getStatusAll();
+    bool isConnected();
 };
 
 #endif

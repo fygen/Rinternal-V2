@@ -57,6 +57,16 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
         sys.server->logger(F("[RES] OK"));
         return F("OK");
     }
+    if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("stopQueue"))) {
+        if (args.size() < 0) {
+            String err = F("Error: 0 params required!");
+            sys.server->logger(F("[RES] ") + err);
+            return err;
+        }
+        sys.stopQueue();
+        sys.server->logger(F("[RES] OK"));
+        return F("OK");
+    }
     if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("automate"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
@@ -403,6 +413,16 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
         sys.server->logger(F("[RES] ") + res);
         return res;
     }
+    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("isConnected"))) {
+        if (args.size() < 0) {
+            String err = F("Error: 0 params required!");
+            sys.server->logger(F("[RES] ") + err);
+            return err;
+        }
+        String res = String(sys.wifi->isConnected());
+        sys.server->logger(F("[RES] ") + res);
+        return res;
+    }
     if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("start"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
@@ -534,6 +554,13 @@ String HELPER::getCommandsJSON() {
     j += F("{");
     j += F("\"module\": \"SYSTEM\", ");
     j += F("\"name\": \"updateQueue\", ");
+    j += F("\"params\": [");
+    j += F("]");
+    j += F("}");
+    j += F(", ");
+    j += F("{");
+    j += F("\"module\": \"SYSTEM\", ");
+    j += F("\"name\": \"stopQueue\", ");
     j += F("\"params\": [");
     j += F("]");
     j += F("}");
@@ -800,6 +827,13 @@ String HELPER::getCommandsJSON() {
     j += F("}");
     j += F(", ");
     j += F("{");
+    j += F("\"module\": \"WIFI\", ");
+    j += F("\"name\": \"isConnected\", ");
+    j += F("\"params\": [");
+    j += F("]");
+    j += F("}");
+    j += F(", ");
+    j += F("{");
     j += F("\"module\": \"TIMER\", ");
     j += F("\"name\": \"start\", ");
     j += F("\"params\": [");
@@ -1038,9 +1072,13 @@ String HELPER::getHelp() {
     h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM updateQueue'}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
+    h += F("<strong>stopQueue</strong><br>");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM stopQueue'}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("</div>");
+    h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>automate</strong><br>");
-    h += F("<input id='input_SYSTEM_automate_31_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM automate ' + document.getElementById('input_SYSTEM_automate_31_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_SYSTEM_automate_32_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM automate ' + document.getElementById('input_SYSTEM_automate_32_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<h3 style='color:#FF9800; border-bottom:1px solid #444; margin-bottom:10px;'>TIMER</h3>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
@@ -1049,8 +1087,8 @@ String HELPER::getHelp() {
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>isExpired</strong><br>");
-    h += F("<input id='input_TIMER_isExpired_33_0' placeholder='unsigned long' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'TIMER isExpired ' + document.getElementById('input_TIMER_isExpired_33_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_TIMER_isExpired_34_0' placeholder='unsigned long' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'TIMER isExpired ' + document.getElementById('input_TIMER_isExpired_34_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>getElapsedMillis</strong><br>");
@@ -1071,9 +1109,9 @@ String HELPER::getHelp() {
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>connect</strong><br>");
-    h += F("<input id='input_WIFI_connect_38_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<input id='input_WIFI_connect_38_1' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'WIFI connect ' + document.getElementById('input_WIFI_connect_38_0').value + ' ' + document.getElementById('input_WIFI_connect_38_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_WIFI_connect_39_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<input id='input_WIFI_connect_39_1' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'WIFI connect ' + document.getElementById('input_WIFI_connect_39_0').value + ' ' + document.getElementById('input_WIFI_connect_39_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>restart</strong><br>");
@@ -1102,6 +1140,10 @@ String HELPER::getHelp() {
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>getStatusAll</strong><br>");
     h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'WIFI getStatusAll'}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("</div>");
+    h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
+    h += F("<strong>isConnected</strong><br>");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'WIFI isConnected'}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("</div>");
     return h;

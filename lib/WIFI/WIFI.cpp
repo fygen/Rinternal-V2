@@ -22,12 +22,16 @@ String WIFI::getStatus()
 
 String WIFI::getStatusAll()
 {
-    String status = "<br/>MAC: " + getMAC() + "\n";
-    status += "<br/>IP: " + getIP() + "\n";
-    status += "<br/>SSID: " + getSSID() + "\n";
-    status += "<br/>Password: " + getPassword() + "\n";
-    status += "<br/>Connection Status: " + getStatus();
+    String status = F("<br/>MAC: ") + getMAC() + F("\n");
+    status += F("<br/>IP: ") + getIP() + F("\n");
+    status += F("<br/>SSID: ") + getSSID() + F("\n");
+    status += F("<br/>Password: ") + getPassword() + F("\n");
+    status += F("<br/>Connection Status: ") + getStatus();
     return status;
+}
+
+bool WIFI::isConnected() {
+    return (WiFi.status() == WL_CONNECTED);
 }
 
 String WIFI::setup()

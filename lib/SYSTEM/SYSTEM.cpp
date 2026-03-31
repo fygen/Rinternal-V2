@@ -25,7 +25,12 @@ void SYSTEM::beginAll() {
     oled->write(wifiStatus);
     server->setup();
     
-    oled->write("Sistem Hazir!");
+    oled->write(F("Sistem Hazir!"));
+
+    // OTOMATİK BAŞLATMA: Eğer autorun dosyası varsa başlat
+    if (fsm->fileexists("/autorun")) {
+        automate(F("autorun"));
+    }
 }
 
 void SYSTEM::addToQueue(String script) {
@@ -64,7 +69,7 @@ void SYSTEM::updateQueue() {
     }
 
     // --- DURUM 2: ŞARTLI BEKLEME (WAIT_UNTIL MODUL KOMUT) ---
-    if (currentLine.startsWith("WAIT_UNTIL ")) {
+    if (currentLine.startsWith(F("WAIT_UNTIL "))) {
         String sub = currentLine.substring(11); // "WIFI isConnected"
         std::vector<String> tokens = HELPER::smartTokenize(sub);
         
@@ -73,8 +78,12 @@ void SYSTEM::updateQueue() {
             String result = HELPER::dispatchCommand(tokens[0], tokens[1], {});
             
             // Eğer cevap "true", "1", "OK" veya "Connected" ise geç
-            if (result.equalsIgnoreCase("true") || result == "1" || result.equalsIgnoreCase("OK") || result.equalsIgnoreCase("Connected")) {
-                server->logger("[QUEUE] Condition met: " + tokens[1]);
+            if (result.equalsIgnoreCase(F("true")) || result == F("1") || result.equalsIgnoreCase(F("OK")) || result.equalsIgnoreCase(F("Connected"))) {
+                server->logger(F("[QUEUE] Condition met: ") + tokens[1]);
+                commandQueue.pop();
+            } else if (result.startsWith(F("Error:"))) {
+                // Eğer komut bulunamazsa veya hata varsa, kuyruğu kilitlememek için atla
+                server->logger(F("[QUEUE] Condition Error: ") + result + F(" (Skipping)"));
                 commandQueue.pop();
             }
         }
@@ -97,6 +106,14 @@ void SYSTEM::updateQueue() {
         // Hatalı komut formatı ise atla
         commandQueue.pop();
     }
+}
+
+void SYSTEM::stopQueue() {
+    while (!commandQueue.empty()) {
+        commandQueue.pop();
+    }
+    _isWaitingMillis = false;
+    server->logger(F("[QUEUE] Stopped."));
 }
 
 void SYSTEM::automate(String filename) {

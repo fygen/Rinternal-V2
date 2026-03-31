@@ -36,6 +36,7 @@ public:
     // Command Queue Methods
     void addToQueue(String script);
     void updateQueue();
+    void stopQueue();
     void automate(String filename);
     std::queue<String> commandQueue;
 
