@@ -51,20 +51,23 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
         <datalist id="cmd-options"></datalist>
         <textarea name="cmd" placeholder="Komut veya Script yaz..." id="cmd-input"></textarea>
         <br>
-        <button hx-post="/execute" 
+        <button id="send-btn" hx-post="/execute" 
                 hx-vals='js:{val: document.getElementById("cmd-input").value}'
+                hx-trigger="click, submit-script from:body"
                 hx-target="#terminal-res">
             Gonder
         </button>
         <div id="terminal-res"></div>
     </div>
 
-    <div id="log-container" 
-         hx-ext="ws" ws-connect="ws://' + window.location.hostname + ':81">
+    <div id="log-container" hx-ext="ws">
          <div id="ws-logs"></div>
     </div>
 
 <script>
+    // Dinamik WebSocket URL ayari
+    document.querySelector('[hx-ext="ws"]').setAttribute('ws-connect', 'ws://' + window.location.hostname + ':81');
+
     // System Terminal Datalist Population
     async function populateCommands() {
         try {
@@ -85,14 +88,22 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
         } catch (error) { console.error('Error loading commands:', error); }
     }
 
-    // Autocomplete'den textarea'ya aktarim
-    document.getElementById('cmd-autocomplete').addEventListener('input', function(e) {
+    // Autocomplete'den textarea'ya aktarim (Sadece secim yapildiginda veya Enter'a basildiginda)
+    document.getElementById('cmd-autocomplete').addEventListener('change', function(e) {
         if(e.target.value) {
             const area = document.getElementById('cmd-input');
             if(area.value.length > 0 && !area.value.endsWith('\n')) area.value += '\n';
             area.value += e.target.value;
             e.target.value = ''; // Reset autocomplete input
             area.focus();
+        }
+    });
+
+    // Textarea icinde Ctrl+Enter ile gonderim
+    document.getElementById('cmd-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            e.preventDefault();
+            htmx.trigger("#cmd-input", "submit-script");
         }
     });
 

@@ -105,14 +105,14 @@ int OLED::write(const char *message)
         // Fonta göre metin genişliğini hesapla
         int w = u8g2.getStrWidth(line.c_str());
 
-        // Satır sonu veya manuel newline kontrolü
-        if (cursorX + w > screenWidth || (index != -1 && start == index))
+        // Satır sonu kontrolü (Eğer mevcut satıra sığmıyorsa alt satıra geç)
+        if (cursorX + w > screenWidth)
         {
             cursorX = 0;
             cursorY += lineHeight;
         }
 
-        // Ekran doldu mu kontrolü
+        // Ekran doldu mu kontrolü (Ekranın altına ulaştıysak temizle)
         if (cursorY > screenHeight)
         {
             u8g2.clearBuffer();
@@ -126,14 +126,15 @@ int OLED::write(const char *message)
             cursorX += w + 4;
         }
 
-        if (index == -1) break;
-        
-        // Newline karakterinden dolayı satır başı yap
-        cursorX = 0;
-        cursorY += lineHeight;
-
-        start = index + 1;
-        index = msg.indexOf('\n', start);
+        // Eğer bu bir \n ise satırı bitir
+        if (index != -1) {
+            cursorX = 0;
+            cursorY += lineHeight;
+            start = index + 1;
+            index = msg.indexOf('\n', start);
+        } else {
+            break; // Mesaj bitti
+        }
     }
 
     u8g2.sendBuffer();
