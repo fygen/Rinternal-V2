@@ -19,11 +19,11 @@ bool FSM::setup()
 String FSM::readfile(const char *path)
 {
     String safePath = path;
-    if (!safePath.startsWith("/")) safePath = "/" + safePath;
+    if (!safePath.startsWith(F("/"))) safePath = F("/") + safePath;
     
     File file = LittleFS.open(safePath, "r");
     if (!file || file.isDirectory())
-        return "ERROR: File Not Found";
+        return F("ERROR: File Not Found");
     String content = file.readString();
     file.close();
     return content;
@@ -54,11 +54,12 @@ bool FSM::deletefile(const char *path)
 // Dosya listesini ANLIK olarak oluştur (RAM tasarrufu)
 String FSM::getfilelist()
 {
-    String list = "Files:\n";
-    Dir dir = LittleFS.openDir("/"); // ESP8266'da openDir kullanılır
+    String list = F("Files:\n");
+    Dir dir = LittleFS.openDir(F("/")); // ESP8266'da openDir kullanılır
     while (dir.next())
     {
-        list += dir.fileName() + " (" + String(dir.fileSize()) + " bytes)\n";
+        yield();
+        list += dir.fileName() + F(" (") + String(dir.fileSize()) + F(" bytes)\n");
     }
     return list;
 }

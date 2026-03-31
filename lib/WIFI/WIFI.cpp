@@ -65,9 +65,12 @@ String WIFI::connect(String ssid, String password)
     WiFi.begin(ssid, password); // Buraya kendi WiFi bilgilerinizi girin
     int attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < 20)
-    { // Ba
+    { 
+        delay(500);
         attempts++;
+        Serial.print(".");
     }
+    Serial.println();
     if (WiFi.status() == WL_CONNECTED)
     {
         return "WiFi Bağlantısı kuruldu.";

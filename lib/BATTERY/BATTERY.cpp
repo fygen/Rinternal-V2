@@ -76,9 +76,9 @@ void BATTERY::baslatTest(int testSayisi, float loadResistor) {
 
 String BATTERY::testRaporu() {
     float ortalama = _toplamDirenc / _toplamTest;
-    String rapor = "--- TEST SONUCU ---\n";
-    rapor += "Adet: " + String(_toplamTest) + "\n";
-    rapor += "Ortalama IR: " + String(ortalama, 4) + " Ohm\n";
+    String rapor = F("--- TEST SONUCU ---\n");
+    rapor += F("Adet: ") + String(_toplamTest) + F("\n");
+    rapor += F("Ortalama IR: ") + String(ortalama, 4) + F(" Ohm\n");
     return rapor;
 }
 
@@ -93,7 +93,7 @@ bool BATTERY::testUpdate() {
 
         // Anlık raporu hazırla
         int suankiSira = _toplamTest - _kalanTest;
-        _araRapor = String(suankiSira) + ". Olcum: " + String(sonuc, 4) + " Ohm";
+        _araRapor = String(suankiSira) + F(". Olcum: ") + String(sonuc, 4) + F(" Ohm");
         _yeniVeriVar = true; // Loop'ta yakalamak için bayrak
 
         if (_kalanTest <= 0) {

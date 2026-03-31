@@ -16,9 +16,9 @@ void SERVER::logger(String message)
     // 2. Bağlı olan tüm web istemcilerine gönder (HTMX için)
     // HTML'de alt satıra geçmek için \n -> <br> yapıyoruz
     String webMessage = message;
-    webMessage.replace("\n", "<br>");
+    webMessage.replace(F("\n"), F("<br>"));
     
-    String htmxMessage = "<div hx-swap-oob='beforeend:#ws-logs'>" + webMessage + "<br></div>";
+    String htmxMessage = F("<div hx-swap-oob='beforeend:#ws-logs'>") + webMessage + F("<br></div>");
     webSocket.broadcastTXT(htmxMessage);
 }
 
@@ -166,146 +166,20 @@ void SERVER::handleLED()
 
 void SERVER::handleResetWiFi()
 {
-    server.send(200, "text/plain", "WiFi Resetleniyor... Cihaz kapanacak.");
-    sys.oled->write("WiFi Resetleniyor... cihaz kapanacak.");
+    server.send(200, F("text/plain"), F("WiFi Resetleniyor... Cihaz kapanacak."));
+    sys.oled->write(F("WiFi Resetleniyor... cihaz kapanacak."));
     sys.wifi->reset(); // WiFi sınıfındaki reset metodunu çağırır
 }
 
-void SERVER::registerCommands()
-{
-    // 1. Parametresiz komut (args boş olacak)
-    commandMap["ls"] = [this](std::vector<String> args)
-    {
-        server.send(200, "text/html", sys.fsm->getfilelist());
-    };
-
-    commandMap["fsm"] = [this](std::vector<String> args)
-    {
-        if (args.size() > 0 && args[0] == "clear")
-        {
-            sys.fsm->deletefile("/config.txt");
-            server.send(200, "text/html", "FSM Config Silindi");
-            return;
-        }
-        else if (args.size() > 0 && args[0] == "reset")
-        {
-            sys.fsm->writefile("/config.txt", "default_config");
-            server.send(200, "text/html", "FSM Config Sifirlandi");
-            return;
-        }
-        else if (args.size() > 0 && args[0] == "read")
-        {
-            String content = sys.fsm->readfile("/config.txt");
-            server.send(200, "text/html", "FSM Config Icerigi: " + content);
-            return;
-        }
-        String status = "FSM Durumu: " + String(sys.fsm->fileexists("/config.txt") ? "Config Var" : "Config Yok");
-        server.send(200, "text/html", status);
-    };
-
-    commandMap["clear"] = [this](std::vector<String> args)
-    {
-        sys.oled->clear();
-        server.send(200, "text/html", "OLED Temizlendi");
-    };
-
-    commandMap["help"] = [this](std::vector<String> args)
-    {
-        String helpText = "Komutlar: ls <br> clear <br> print [mesaj] <br> wifi [option] [ssid] [pass]";
-        server.send(200, "text/html", helpText);
-    };
-
-    // 2. Tek parametreli komut: "print merhaba"
-    commandMap["print"] = [this](std::vector<String> args)
-    {
-        if (args.size() > 0)
-        {
-            String msg = "";
-            for (const auto &s : args)
-                msg += s + " "; // Tüm parçaları birleştir
-            sys.oled->write(msg.c_str());
-            server.send(200, "text/html", "OLED: " + msg);
-        }
-    };
-
-    // 3. Çok parametreli komut: "wifi set ssid password"
-    commandMap["wifi"] = [this](std::vector<String> args)
-    {
-        if (args.size() >= 2 && args[0] == "set")
-        {
-            String ssid = args[1];
-            String pass = args[2];
-            server.send(200, "text/html", "WiFi Ayarlandi: " + ssid);
-            sys.wifi->connect(ssid, pass);
-        }
-        else if (args.size() >= 1 && args[0] == "reset")
-        {
-            sys.wifi->reset();
-            server.send(200, "text/html", "WiFi Ayarları Sıfırlandı.<br> Cihazı yeniden başlatın.");
-        }
-        else if (args.size() >= 1 && args[0] == "restart")
-        {
-            sys.wifi->restart();
-            server.send(200, "text/html", "Cihaz yeniden başlatılıyor.");
-        }
-        else if (args.size() >= 1 && args[0] == "status")
-        {
-            String status = "MAC: " + sys.wifi->getMAC() + "<br>, IP: " + sys.wifi->getIP() + "<br>, SSID: " + sys.wifi->getSSID() + "<br>, Password: " + sys.wifi->getPassword();
-            server.send(200, "text/html", status);
-        }
-        else if (args.size() >= 1 && args[0] == "connect")
-        {
-            if (args.size() >= 3)
-            {
-                String ssid = args[1];
-                String pass = args[2];
-                String result = sys.wifi->connect(ssid, pass);
-                server.send(200, "text/html", result);
-            }
-            else
-            {
-                server.send(200, "text/html", "Kullanim: wifi connect [ssid] [pass]");
-            }
-        }
-        else
-        {
-            server.send(200, "text/html", "Kullanim: wifi set [ssid] [pass] <br> wifi reset <br> wifi restart <br> wifi status <br> wifi connect [ssid] [pass]");
-        }
-    };
-}
-
-void SERVER::commandParseAndExecute(String rawInput)
-{
-    rawInput.trim();
-    std::vector<String> tokens = HELPER::smartTokenize(rawInput);
-
-    if (tokens.empty())
-        return;
-
-    String cmd = tokens[0];       // İlk kelime komut
-    tokens.erase(tokens.begin()); // Komutu listeden at, geriye sadece argümanlar kalsın
-
-    auto it = commandMap.find(cmd);
-    if (it != commandMap.end())
-    {
-        it->second(tokens); // Argüman vektörünü fonksiyona yolla
-    }
-    else
-    {
-        sys.oled->write(rawInput.c_str());
-        server.send(200, "text/html", "Bilinmeyen komut, OLED'e basildi.");
-    }
-}
-
 void SERVER::handleExecute() {
-    String input = "";
+    String input = F("");
     
     // Check both POST body and GET query parameters
-    if (server.hasArg("val")) {
-        input = server.arg("val");
+    if (server.hasArg(F("val"))) {
+        input = server.arg(F("val"));
     }
 
-    if (input != "") {
+    if (input != F("")) {
         input.trim();
         std::vector<String> tokens = HELPER::smartTokenize(input);
         
@@ -320,69 +194,24 @@ void SERVER::handleExecute() {
 
             String response = HELPER::dispatchCommand(module, command, args);
             
-            if (module.equalsIgnoreCase("HELPER") && command.equalsIgnoreCase("getCommandsJSON")) {
-                server.send(200, "application/json", response);
+            if (module.equalsIgnoreCase(F("HELPER")) && command.equalsIgnoreCase(F("getCommandsJSON"))) {
+                server.send(200, F("application/json"), response);
             } else {
                 // CRITICAL: If the response contains HTML (like getHelp), 
                 // send it with "text/html" so the browser renders it.
-                server.send(200, "text/html", response);
+                server.send(200, F("text/html"), response);
             }
             
-            logger("Cmd: " + input);
+            logger(F("Cmd: ") + input);
         } else {
-            server.send(400, "text/plain", "Invalid Command Format");
+            server.send(400, F("text/plain"), F("Invalid Command Format"));
         }
     } else {
-        server.send(400, "text/plain", "No 'val' argument found");
+        server.send(400, F("text/plain"), F("No 'val' argument found"));
     }
 }
 
-// void SERVER::handleExecute()
-// {
-//     if (server.hasArg("val"))
-//     {
-//         String input = server.arg("val");
-//         std::vector<String> tokens = HELPER::splitString(input, ' ');
-
-//         if (tokens.size() >= 2)
-//         {
-//             String module = tokens[0];
-//             String command = tokens[1];
-
-//             // Extract remaining arguments efficiently
-//             std::vector<String> args;
-//             for (size_t i = 2; i < tokens.size(); i++)
-//             {
-//                 args.push_back(tokens[i]);
-//             }
-
-//             String response = HELPER::dispatchCommand(module, command, args);
-//             logger("Cmd: " + input + " | Res: " + response);
-
-//             // Send a response back to the HTMX target
-//             server.send(200, "text/html", "Success: " + response);
-//         }
-//         else
-//         {
-//             server.send(200, "text/html", "Hata: Eksik parametre");
-//         }
-//     }
-// }
-
-// void SERVER::handleExecute()
-// {
-//     if (server.hasArg("val"))
-//     {
-//         auto Response = HELPER::dispatchCommand(HELPER::splitString(server.arg("val"), ' ')[0], // Modül adı (örneğin "OLED")
-//                     HELPER::splitString(server.arg("val"), ' ')[1], // Komut adı (örneğin "write")
-//                     std::vector<String>(HELPER::splitString(server.arg("val"), ' ').begin() + 2, HELPER::splitString(server.arg("val"), ' ').end())); // Geri kalan argümanlar
-//         // Alternatif olarak doğrudan tüm komutu da gönderebilirsin:
-//         logger("Komut alindi: " + server.arg("val") + " | Response: " + Response);
-//         // commandParseAndExecute(server.arg("val"));
-//     }
-// }
-
 void SERVER::handleNotFound()
 {
-    server.send(404, "text/plain", "Sayfa Bulunamadi");
+    server.send(404, F("text/plain"), F("Sayfa Bulunamadi"));
 }

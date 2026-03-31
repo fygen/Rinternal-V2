@@ -95,6 +95,7 @@ int OLED::write(const char *message)
     int index = msg.indexOf('\n');
 
     while (index != -1 || start < msg.length()) {
+        yield(); // Allow background tasks (WiFi, WDT)
         String line;
         if (index != -1) {
             line = msg.substring(start, index);
