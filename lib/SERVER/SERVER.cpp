@@ -174,41 +174,122 @@ void SERVER::handleResetWiFi()
 void SERVER::handleExecute() {
     String input = F("");
     
-    // Check both POST body and GET query parameters
     if (server.hasArg(F("val"))) {
         input = server.arg(F("val"));
     }
 
-    if (input != F("")) {
-        input.trim();
-        std::vector<String> tokens = HELPER::smartTokenize(input);
+    if (input == F("")) {
+        server.send(400, F("text/plain"), F("No 'val' argument found"));
+        return;
+    }
+
+    input.trim();
+    
+    // If the input contains newlines AND is not a single `writefile` command,
+    // treat it as a script to be queued. This preserves existing behavior for multi-line scripts.
+    bool isLikelyWriteFile = input.substring(0, 14).equalsIgnoreCase(F("FSM WRITEFILE "));
+    if (input.indexOf('\n') != -1 && !isLikelyWriteFile) {
+        sys.addToQueue(input);
+        server.send(200, F("text/html"), F("Script added to queue..."));
+        logger(F("Script Queued"));
+        return;
+    }
+
+    // Process the input, which may contain one or more commands.
+    String remainingInput = input;
+    String fullResponse = "";
+
+    while (remainingInput.length() > 0) {
+        remainingInput.trim();
+        if (remainingInput.length() == 0) break;
+
+        String currentCommand;
+        int endOfCommandIdx = -1;
+
+        // Special case: FSM writefile <filename> "content" defines its own end.
+        if (remainingInput.substring(0, 14).equalsIgnoreCase(F("FSM WRITEFILE "))) {
+            // Find the start of the quoted content
+            int firstSpace = remainingInput.indexOf(' ');
+            int secondSpace = (firstSpace != -1) ? remainingInput.indexOf(' ', firstSpace + 1) : -1;
+            int quoteStart = (secondSpace != -1) ? remainingInput.indexOf('"', secondSpace + 1) : -1;
+
+            // Check if we have the pattern: FSM writefile filename "
+            if (quoteStart > secondSpace) {
+                // Find the matching closing quote. This simple search doesn't handle escaped quotes.
+                int quoteEnd = remainingInput.indexOf('"', quoteStart + 1);
+                if (quoteEnd != -1) {
+                    // We found a complete writefile command. Its end is the closing quote.
+                    endOfCommandIdx = quoteEnd;
+                }
+            }
+        }
+
+        // If it's not a special writefile command, or if the writefile command was malformed,
+        // we treat commands as being separated by newlines.
+        if (endOfCommandIdx == -1) {
+            int newlineIdx = remainingInput.indexOf('\n');
+            if (newlineIdx != -1) {
+                endOfCommandIdx = newlineIdx - 1; // The command ends before the newline
+            } else {
+                // No more newlines, the rest of the string is the command
+                endOfCommandIdx = remainingInput.length() - 1;
+            }
+        }
         
-        if(tokens.size() >= 2) {
+        currentCommand = remainingInput.substring(0, endOfCommandIdx + 1);
+        remainingInput = remainingInput.substring(endOfCommandIdx + 1);
+
+        currentCommand.trim();
+        if (currentCommand.length() == 0) continue;
+
+        // --- Execute currentCommand ---
+        if (currentCommand.startsWith(F("WAIT ")) || currentCommand.startsWith(F("WAIT_UNTIL "))) {
+            sys.addToQueue(currentCommand);
+            fullResponse += "Command Queued: " + currentCommand + "<br>";
+            continue;
+        }
+
+        std::vector<String> tokens;
+        // Manual tokenization for the special writefile case to handle the quoted content.
+        if (currentCommand.substring(0, 14).equalsIgnoreCase(F("FSM WRITEFILE "))) {
+            int firstSpace = currentCommand.indexOf(' ');
+            int secondSpace = currentCommand.indexOf(' ', firstSpace + 1);
+            int quoteStart = currentCommand.indexOf('"', secondSpace + 1);
+            // Check for the full pattern including the closing quote
+            if (quoteStart > secondSpace && currentCommand.endsWith("\"")) {
+                tokens.push_back(F("FSM"));
+                tokens.push_back(F("writefile"));
+                String filename = currentCommand.substring(secondSpace + 1, quoteStart);
+                filename.trim();
+                tokens.push_back(filename);
+                tokens.push_back(currentCommand.substring(quoteStart)); // The rest is the content, with quotes
+            } else {
+                // If pattern is broken, fall back to standard tokenizing
+                tokens = HELPER::smartTokenize(currentCommand);
+            }
+        } else {
+            tokens = HELPER::smartTokenize(currentCommand);
+        }
+
+        if (tokens.size() >= 2) {
             String module = tokens[0];
             String command = tokens[1];
-            
             std::vector<String> args;
-            for(size_t i = 2; i < tokens.size(); i++) {
-                args.push_back(tokens[i]);
-            }
-
+            for (size_t i = 2; i < tokens.size(); i++) args.push_back(tokens[i]);
+            
             String response = HELPER::dispatchCommand(module, command, args);
             
             if (module.equalsIgnoreCase(F("HELPER")) && command.equalsIgnoreCase(F("getCommandsJSON"))) {
                 server.send(200, F("application/json"), response);
-            } else {
-                // CRITICAL: If the response contains HTML (like getHelp), 
-                // send it with "text/html" so the browser renders it.
-                server.send(200, F("text/html"), response);
+                return; // This command should be sent alone.
             }
-            
-            logger(F("Cmd: ") + input);
+            fullResponse += response + "<br>";
         } else {
-            server.send(400, F("text/plain"), F("Invalid Command Format"));
+            fullResponse += "Invalid Command Format: " + currentCommand + "<br>";
         }
-    } else {
-        server.send(400, F("text/plain"), F("No 'val' argument found"));
     }
+
+    server.send(200, F("text/html"), fullResponse);
 }
 
 void SERVER::handleNotFound()

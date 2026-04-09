@@ -33,14 +33,24 @@ String FSM::readfile(const char *path)
 bool FSM::writefile(const char *path, const String &content)
 {
     String safePath = path;
-    if (!safePath.startsWith("/")) safePath = "/" + safePath;
+    if (!safePath.startsWith(F("/"))) safePath = F("/") + safePath;
+
+    String processed_content = content;
+    processed_content.trim();
+    if (processed_content.startsWith(F("\"")) && processed_content.endsWith(F("\"")))
+    {
+        processed_content = processed_content.substring(1, processed_content.length() - 1);
+    }
+    // Newlines from web textarea are real \n, not escaped \\n. No replacement needed.
 
     File file = LittleFS.open(safePath, "w");
     if (!file)
         return false;
-    bool success = file.print(content);
+    
+    size_t written = file.print(processed_content);
     file.close();
-    return success;
+
+    return written == processed_content.length();
 }
 
 // Dosyayı sil

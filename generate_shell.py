@@ -97,6 +97,8 @@ with open(output_file, "w", encoding="utf-8") as f:
                     call_args.append(f"args[{i}].toFloat()")
                 elif "bool" in pt:
                     call_args.append(f"(args[{i}].equalsIgnoreCase(F(\"true\")) || args[{i}] == F(\"1\"))")
+                elif pt == "char":
+                    call_args.append(f"args[{i}].charAt(0)")
                 elif "char" in pt:
                     call_args.append(f"args[{i}].c_str()")
                 else:

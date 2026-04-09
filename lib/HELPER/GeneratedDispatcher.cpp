@@ -81,6 +81,16 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
         sys.server->logger(F("[RES] OK"));
         return F("OK");
     }
+    if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("startQueue"))) {
+        if (args.size() < 0) {
+            String err = F("Error: 0 params required!");
+            sys.server->logger(F("[RES] ") + err);
+            return err;
+        }
+        sys.startQueue();
+        sys.server->logger(F("[RES] OK"));
+        return F("OK");
+    }
     if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("write"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
@@ -316,6 +326,16 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
             return err;
         }
         String res = String(sys.helper->getCommandsJSON());
+        sys.server->logger(F("[RES] ") + res);
+        return res;
+    }
+    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("quoteTokenize"))) {
+        if (args.size() < 2) {
+            String err = F("Error: 2 params required!");
+            sys.server->logger(F("[RES] ") + err);
+            return err;
+        }
+        String res = String(sys.helper->quoteTokenize(args[0], args[1].charAt(0)));
         sys.server->logger(F("[RES] ") + res);
         return res;
     }
@@ -574,6 +594,13 @@ String HELPER::getCommandsJSON() {
     j += F("}");
     j += F(", ");
     j += F("{");
+    j += F("\"module\": \"SYSTEM\", ");
+    j += F("\"name\": \"startQueue\", ");
+    j += F("\"params\": [");
+    j += F("]");
+    j += F("}");
+    j += F(", ");
+    j += F("{");
     j += F("\"module\": \"OLED\", ");
     j += F("\"name\": \"write\", ");
     j += F("\"params\": [");
@@ -757,6 +784,16 @@ String HELPER::getCommandsJSON() {
     j += F("\"module\": \"HELPER\", ");
     j += F("\"name\": \"getCommandsJSON\", ");
     j += F("\"params\": [");
+    j += F("]");
+    j += F("}");
+    j += F(", ");
+    j += F("{");
+    j += F("\"module\": \"HELPER\", ");
+    j += F("\"name\": \"quoteTokenize\", ");
+    j += F("\"params\": [");
+    j += F("\"String\"");
+    j += F(", ");
+    j += F("\"char\"");
     j += F("]");
     j += F("}");
     j += F(", ");
@@ -994,16 +1031,22 @@ String HELPER::getHelp() {
     h += F("<strong>getCommandsJSON</strong><br>");
     h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'HELPER getCommandsJSON'}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
+    h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
+    h += F("<strong>quoteTokenize</strong><br>");
+    h += F("<input id='input_HELPER_quoteTokenize_17_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<input id='input_HELPER_quoteTokenize_17_1' placeholder='char' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'HELPER quoteTokenize ' + document.getElementById('input_HELPER_quoteTokenize_17_0').value + ' ' + document.getElementById('input_HELPER_quoteTokenize_17_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("</div>");
     h += F("<h3 style='color:#FF9800; border-bottom:1px solid #444; margin-bottom:10px;'>OLED</h3>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>write</strong><br>");
-    h += F("<input id='input_OLED_write_17_0' placeholder='const String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED write ' + document.getElementById('input_OLED_write_17_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_OLED_write_18_0' placeholder='const String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED write ' + document.getElementById('input_OLED_write_18_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>write</strong><br>");
-    h += F("<input id='input_OLED_write_18_0' placeholder='const char' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED write ' + document.getElementById('input_OLED_write_18_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_OLED_write_19_0' placeholder='const char' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED write ' + document.getElementById('input_OLED_write_19_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>clear</strong><br>");
@@ -1011,8 +1054,8 @@ String HELPER::getHelp() {
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>setBrightness</strong><br>");
-    h += F("<input id='input_OLED_setBrightness_20_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED setBrightness ' + document.getElementById('input_OLED_setBrightness_20_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_OLED_setBrightness_21_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED setBrightness ' + document.getElementById('input_OLED_setBrightness_21_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>getStatus</strong><br>");
@@ -1020,52 +1063,52 @@ String HELPER::getHelp() {
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>setCursor</strong><br>");
-    h += F("<input id='input_OLED_setCursor_22_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<input id='input_OLED_setCursor_22_1' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED setCursor ' + document.getElementById('input_OLED_setCursor_22_0').value + ' ' + document.getElementById('input_OLED_setCursor_22_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_OLED_setCursor_23_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<input id='input_OLED_setCursor_23_1' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED setCursor ' + document.getElementById('input_OLED_setCursor_23_0').value + ' ' + document.getElementById('input_OLED_setCursor_23_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>setLineHeight</strong><br>");
-    h += F("<input id='input_OLED_setLineHeight_23_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED setLineHeight ' + document.getElementById('input_OLED_setLineHeight_23_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_OLED_setLineHeight_24_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED setLineHeight ' + document.getElementById('input_OLED_setLineHeight_24_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>setScreenSize</strong><br>");
-    h += F("<input id='input_OLED_setScreenSize_24_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<input id='input_OLED_setScreenSize_24_1' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED setScreenSize ' + document.getElementById('input_OLED_setScreenSize_24_0').value + ' ' + document.getElementById('input_OLED_setScreenSize_24_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_OLED_setScreenSize_25_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<input id='input_OLED_setScreenSize_25_1' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED setScreenSize ' + document.getElementById('input_OLED_setScreenSize_25_0').value + ' ' + document.getElementById('input_OLED_setScreenSize_25_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>setInverse</strong><br>");
-    h += F("<input id='input_OLED_setInverse_25_0' placeholder='bool' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED setInverse ' + document.getElementById('input_OLED_setInverse_25_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_OLED_setInverse_26_0' placeholder='bool' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED setInverse ' + document.getElementById('input_OLED_setInverse_26_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>drawProgressBar</strong><br>");
-    h += F("<input id='input_OLED_drawProgressBar_26_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<input id='input_OLED_drawProgressBar_26_1' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<input id='input_OLED_drawProgressBar_26_2' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<input id='input_OLED_drawProgressBar_26_3' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<input id='input_OLED_drawProgressBar_26_4' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED drawProgressBar ' + document.getElementById('input_OLED_drawProgressBar_26_0').value + ' ' + document.getElementById('input_OLED_drawProgressBar_26_1').value + ' ' + document.getElementById('input_OLED_drawProgressBar_26_2').value + ' ' + document.getElementById('input_OLED_drawProgressBar_26_3').value + ' ' + document.getElementById('input_OLED_drawProgressBar_26_4').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_OLED_drawProgressBar_27_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<input id='input_OLED_drawProgressBar_27_1' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<input id='input_OLED_drawProgressBar_27_2' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<input id='input_OLED_drawProgressBar_27_3' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<input id='input_OLED_drawProgressBar_27_4' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED drawProgressBar ' + document.getElementById('input_OLED_drawProgressBar_27_0').value + ' ' + document.getElementById('input_OLED_drawProgressBar_27_1').value + ' ' + document.getElementById('input_OLED_drawProgressBar_27_2').value + ' ' + document.getElementById('input_OLED_drawProgressBar_27_3').value + ' ' + document.getElementById('input_OLED_drawProgressBar_27_4').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>drawCentered</strong><br>");
-    h += F("<input id='input_OLED_drawCentered_27_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<input id='input_OLED_drawCentered_27_1' placeholder='const char*' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED drawCentered ' + document.getElementById('input_OLED_drawCentered_27_0').value + ' ' + document.getElementById('input_OLED_drawCentered_27_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_OLED_drawCentered_28_0' placeholder='int' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<input id='input_OLED_drawCentered_28_1' placeholder='const char*' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'OLED drawCentered ' + document.getElementById('input_OLED_drawCentered_28_0').value + ' ' + document.getElementById('input_OLED_drawCentered_28_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<h3 style='color:#FF9800; border-bottom:1px solid #444; margin-bottom:10px;'>SERVER</h3>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>logger</strong><br>");
-    h += F("<input id='input_SERVER_logger_28_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SERVER logger ' + document.getElementById('input_SERVER_logger_28_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_SERVER_logger_29_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SERVER logger ' + document.getElementById('input_SERVER_logger_29_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<h3 style='color:#FF9800; border-bottom:1px solid #444; margin-bottom:10px;'>SYSTEM</h3>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>addToQueue</strong><br>");
-    h += F("<input id='input_SYSTEM_addToQueue_29_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM addToQueue ' + document.getElementById('input_SYSTEM_addToQueue_29_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_SYSTEM_addToQueue_30_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM addToQueue ' + document.getElementById('input_SYSTEM_addToQueue_30_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>updateQueue</strong><br>");
@@ -1077,8 +1120,12 @@ String HELPER::getHelp() {
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>automate</strong><br>");
-    h += F("<input id='input_SYSTEM_automate_32_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM automate ' + document.getElementById('input_SYSTEM_automate_32_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_SYSTEM_automate_33_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM automate ' + document.getElementById('input_SYSTEM_automate_33_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("</div>");
+    h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
+    h += F("<strong>startQueue</strong><br>");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'SYSTEM startQueue'}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<h3 style='color:#FF9800; border-bottom:1px solid #444; margin-bottom:10px;'>TIMER</h3>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
@@ -1087,8 +1134,8 @@ String HELPER::getHelp() {
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>isExpired</strong><br>");
-    h += F("<input id='input_TIMER_isExpired_34_0' placeholder='unsigned long' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'TIMER isExpired ' + document.getElementById('input_TIMER_isExpired_34_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_TIMER_isExpired_36_0' placeholder='unsigned long' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'TIMER isExpired ' + document.getElementById('input_TIMER_isExpired_36_0').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>getElapsedMillis</strong><br>");
@@ -1109,9 +1156,9 @@ String HELPER::getHelp() {
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>connect</strong><br>");
-    h += F("<input id='input_WIFI_connect_39_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<input id='input_WIFI_connect_39_1' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
-    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'WIFI connect ' + document.getElementById('input_WIFI_connect_39_0').value + ' ' + document.getElementById('input_WIFI_connect_39_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
+    h += F("<input id='input_WIFI_connect_41_0' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<input id='input_WIFI_connect_41_1' placeholder='String' style='width:80px; margin:4px; padding:4px; background:#3d3d3d; color:white; border:1px solid #555;'> ");
+    h += F("<button hx-post='/execute' hx-vals=\"js:{val: 'WIFI connect ' + document.getElementById('input_WIFI_connect_41_0').value + ' ' + document.getElementById('input_WIFI_connect_41_1').value + ''}\" hx-target='#terminal-res' style='background:#2e7d32; color:white; border:none; padding:5px 12px; border-radius:3px; cursor:pointer;'>Run</button>");
     h += F("</div>");
     h += F("<div style='margin-bottom:12px; padding:8px; background:#2d2d2d; border-radius:4px;'>");
     h += F("<strong>restart</strong><br>");

@@ -14,6 +14,7 @@ public:
     bool copyto(char *response, size_t size, const char* format, ...);
     static String getHelp();
     static String getCommandsJSON();
+    static String quoteTokenize(String input, char delimiter);
 private:
     char _response[255];
 

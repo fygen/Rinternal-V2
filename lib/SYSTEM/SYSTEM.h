@@ -38,6 +38,7 @@ public:
     void updateQueue();
     void stopQueue();
     void automate(String filename);
+    void startQueue();
     std::queue<String> commandQueue;
 
 private:

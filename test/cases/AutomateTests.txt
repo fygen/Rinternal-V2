@@ -1,0 +1,15 @@
+OLED clear
+OLED write Test Basliyor...
+SERVER logger Sistem Otomatik Testi Baslatildi.
+WAIT_UNTIL WIFI isConnected
+SERVER logger WiFi Bagltisi Dogruldi.
+OLED write WiFi OK!
+WAIT 500
+OLED write "OLED Parlaklik OK"
+SERVER logger Batarya IR Testi Baslatiliyor...
+BATTERY baslatTest 5 4.0
+WAIT 2000
+SERVER logger Batarya Testi Tamamldi.
+OLED drawProgressBar 10 40 100 10 100
+OLED write Test Bitti!
+SERVER logger Tum sistem testleri basariyla tamamlandi.
