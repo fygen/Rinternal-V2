@@ -41,6 +41,10 @@ public:
     void startQueue();
     std::queue<String> commandQueue;
 
+    // The Global Response Catcher
+    String lastResult = "";
+    bool lastSuccess = false;
+
 private:
     unsigned long _waitStartTime = 0;
     bool _isWaitingMillis = false;

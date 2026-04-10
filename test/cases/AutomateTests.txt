@@ -2,10 +2,10 @@ OLED clear
 OLED write Test Basliyor...
 SERVER logger Sistem Otomatik Testi Baslatildi.
 WAIT_UNTIL WIFI isConnected
-SERVER logger WiFi Bagltisi Dogruldi.
+SERVER logger WiFi Baglantisi Dogrulandi.
 OLED write WiFi OK!
 WAIT 500
-OLED write "OLED Parlaklik OK"
+OLED write OLED Parlaklik OK
 SERVER logger Batarya IR Testi Baslatiliyor...
 BATTERY baslatTest 5 4.0
 WAIT 2000
@@ -13,3 +13,11 @@ SERVER logger Batarya Testi Tamamldi.
 OLED drawProgressBar 10 40 100 10 100
 OLED write Test Bitti!
 SERVER logger Tum sistem testleri basariyla tamamlandi.
+# Check WiFi and report to OLED
+WIFI isConnected
+IF_SUCCESS OLED write Network:OK
+IF_FAIL OLED write Network:DISCONNECTED
+# Pipe heap info to OLED
+HELPER getFreeHeap | OLED write
+# Chain operations
+BATTERY getVoltage | OLED write

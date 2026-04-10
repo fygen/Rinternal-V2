@@ -59,20 +59,21 @@ with open(output_file, "w", encoding="utf-8") as f:
     f.write('    String logMsg = F("[CMD] ") + mod + F(" ") + cmd;\n')
     f.write('    for(const auto& a : args) logMsg += F(" \'") + a + F("\'");\n')
     f.write('    sys.server->logger(logMsg);\n\n')
+    f.write('    String res = "";\n')
     
     # Special case for HELPER methods that might not be in the commands list
-    f.write('    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getHelp"))) return getHelp();\n')
-    f.write('    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getCommandsJSON"))) return getCommandsJSON();\n')
-    f.write('    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getFreeHeap"))) return getFreeHeap();\n')
+    f.write('    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getHelp"))) res = getHelp();\n')
+    f.write('    else if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getCommandsJSON"))) res = getCommandsJSON();\n')
+    f.write('    else if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getFreeHeap"))) res = getFreeHeap();\n')
 
     for cmd in commands:
         num_params = len(cmd['params'])
-        f.write(f'    if (mod.equalsIgnoreCase(F("{cmd["module"]}")) && cmd.equalsIgnoreCase(F("{cmd["name"]}"))) {{\n')
+        f.write(f'    else if (mod.equalsIgnoreCase(F("{cmd["module"]}")) && cmd.equalsIgnoreCase(F("{cmd["name"]}"))) {{\n')
         f.write(f'        if (args.size() < {num_params}) {{\n')
         f.write(f'            String err = F("Error: {num_params} params required!");\n')
         f.write('            sys.server->logger(F("[RES] ") + err);\n')
-        f.write('            return err;\n')
-        f.write('        }\n')
+        f.write('            res = err;\n')
+        f.write('        } else {\n')
         
         call_args = []
         for i, p_type in enumerate(cmd['params']):
@@ -81,10 +82,10 @@ with open(output_file, "w", encoding="utf-8") as f:
             
             # Greedy join for the last parameter if it's a string/char*
             if is_last and ("string" in pt or "char*" in pt or "char *" in pt):
-                f.write(f'        String joinedArgs{i} = F("");\n')
-                f.write(f'        for(size_t j = {i}; j < args.size(); j++) {{\n')
-                f.write(f'            joinedArgs{i} += args[j] + (j < args.size() - 1 ? F(" ") : F(""));\n')
-                f.write(f'        }}\n')
+                f.write(f'            String joinedArgs{i} = F("");\n')
+                f.write(f'            for(size_t j = {i}; j < args.size(); j++) {{\n')
+                f.write(f'                joinedArgs{i} += args[j] + (j < args.size() - 1 ? F(" ") : F(""));\n')
+                f.write(f'            }}\n')
                 
                 if "char" in pt:
                     call_args.append(f"joinedArgs{i}.c_str()")
@@ -112,18 +113,22 @@ with open(output_file, "w", encoding="utf-8") as f:
         
         ret = cmd['ret'].lower()
         if "void" in ret:
-            f.write(f'        {instance}{cmd["name"]}({args_str});\n')
-            f.write('        sys.server->logger(F("[RES] OK"));\n')
-            f.write('        return F("OK");\n')
+            f.write(f'            {instance}{cmd["name"]}({args_str});\n')
+            f.write('            res = F("OK");\n')
         else:
-            f.write(f'        String res = String({instance}{cmd["name"]}({args_str}));\n')
-            f.write('        sys.server->logger(F("[RES] ") + res);\n')
-            f.write('        return res;\n')
+            f.write(f'            res = String({instance}{cmd["name"]}({args_str}));\n')
+        f.write('        }\n')
         f.write('    }\n')
     
-    f.write('\n    String finalErr = F("Error: Command not found!");\n')
-    f.write('    sys.server->logger(F("[RES] ") + finalErr);\n')
-    f.write('    return finalErr;\n}\n')
+    f.write('\n    if (res == "") {\n')
+    f.write('        res = F("Error: Command not found!");\n')
+    f.write('    }\n')
+    f.write('    \n')
+    f.write('    sys.lastResult = res;\n')
+    f.write('    sys.lastSuccess = !res.startsWith(F("Error")) && res != F("0") && res != "";\n')
+    f.write('    sys.server->logger(F("[RES] ") + res);\n')
+    f.write('    return res;\n}\n')
+
 
     # --- getCommandsJSON Implementation ---
     f.write('\nString HELPER::getCommandsJSON() {\n')

@@ -16,541 +16,506 @@ String HELPER::dispatchCommand(String mod, String cmd, std::vector<String> args)
     for(const auto& a : args) logMsg += F(" '") + a + F("'");
     sys.server->logger(logMsg);
 
-    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getHelp"))) return getHelp();
-    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getCommandsJSON"))) return getCommandsJSON();
-    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getFreeHeap"))) return getFreeHeap();
-    if (mod.equalsIgnoreCase(F("SERVER")) && cmd.equalsIgnoreCase(F("logger"))) {
+    String res = "";
+    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getHelp"))) res = getHelp();
+    else if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getCommandsJSON"))) res = getCommandsJSON();
+    else if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getFreeHeap"))) res = getFreeHeap();
+    else if (mod.equalsIgnoreCase(F("SERVER")) && cmd.equalsIgnoreCase(F("logger"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            String joinedArgs0 = F("");
+            for(size_t j = 0; j < args.size(); j++) {
+                joinedArgs0 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
+            }
+            sys.server->logger(joinedArgs0);
+            res = F("OK");
         }
-        String joinedArgs0 = F("");
-        for(size_t j = 0; j < args.size(); j++) {
-            joinedArgs0 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
-        }
-        sys.server->logger(joinedArgs0);
-        sys.server->logger(F("[RES] OK"));
-        return F("OK");
     }
-    if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("addToQueue"))) {
+    else if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("addToQueue"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            String joinedArgs0 = F("");
+            for(size_t j = 0; j < args.size(); j++) {
+                joinedArgs0 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
+            }
+            sys.addToQueue(joinedArgs0);
+            res = F("OK");
         }
-        String joinedArgs0 = F("");
-        for(size_t j = 0; j < args.size(); j++) {
-            joinedArgs0 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
-        }
-        sys.addToQueue(joinedArgs0);
-        sys.server->logger(F("[RES] OK"));
-        return F("OK");
     }
-    if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("updateQueue"))) {
+    else if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("updateQueue"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            sys.updateQueue();
+            res = F("OK");
         }
-        sys.updateQueue();
-        sys.server->logger(F("[RES] OK"));
-        return F("OK");
     }
-    if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("stopQueue"))) {
+    else if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("stopQueue"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            sys.stopQueue();
+            res = F("OK");
         }
-        sys.stopQueue();
-        sys.server->logger(F("[RES] OK"));
-        return F("OK");
     }
-    if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("automate"))) {
+    else if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("automate"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            String joinedArgs0 = F("");
+            for(size_t j = 0; j < args.size(); j++) {
+                joinedArgs0 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
+            }
+            sys.automate(joinedArgs0);
+            res = F("OK");
         }
-        String joinedArgs0 = F("");
-        for(size_t j = 0; j < args.size(); j++) {
-            joinedArgs0 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
-        }
-        sys.automate(joinedArgs0);
-        sys.server->logger(F("[RES] OK"));
-        return F("OK");
     }
-    if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("startQueue"))) {
+    else if (mod.equalsIgnoreCase(F("SYSTEM")) && cmd.equalsIgnoreCase(F("startQueue"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            sys.startQueue();
+            res = F("OK");
         }
-        sys.startQueue();
-        sys.server->logger(F("[RES] OK"));
-        return F("OK");
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("write"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("write"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            String joinedArgs0 = F("");
+            for(size_t j = 0; j < args.size(); j++) {
+                joinedArgs0 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
+            }
+            res = String(sys.oled->write(joinedArgs0));
         }
-        String joinedArgs0 = F("");
-        for(size_t j = 0; j < args.size(); j++) {
-            joinedArgs0 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
-        }
-        String res = String(sys.oled->write(joinedArgs0));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("write"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("write"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.oled->write(args[0].c_str()));
         }
-        String res = String(sys.oled->write(args[0].c_str()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("clear"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("clear"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            sys.oled->clear();
+            res = F("OK");
         }
-        sys.oled->clear();
-        sys.server->logger(F("[RES] OK"));
-        return F("OK");
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("setBrightness"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("setBrightness"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.oled->setBrightness(args[0].toInt()));
         }
-        String res = String(sys.oled->setBrightness(args[0].toInt()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("getStatus"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("getStatus"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.oled->getStatus());
         }
-        String res = String(sys.oled->getStatus());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("setCursor"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("setCursor"))) {
         if (args.size() < 2) {
             String err = F("Error: 2 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.oled->setCursor(args[0].toInt(), args[1].toInt()));
         }
-        String res = String(sys.oled->setCursor(args[0].toInt(), args[1].toInt()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("setLineHeight"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("setLineHeight"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.oled->setLineHeight(args[0].toInt()));
         }
-        String res = String(sys.oled->setLineHeight(args[0].toInt()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("setScreenSize"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("setScreenSize"))) {
         if (args.size() < 2) {
             String err = F("Error: 2 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.oled->setScreenSize(args[0].toInt(), args[1].toInt()));
         }
-        String res = String(sys.oled->setScreenSize(args[0].toInt(), args[1].toInt()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("setInverse"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("setInverse"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.oled->setInverse((args[0].equalsIgnoreCase(F("true")) || args[0] == F("1"))));
         }
-        String res = String(sys.oled->setInverse((args[0].equalsIgnoreCase(F("true")) || args[0] == F("1"))));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("drawProgressBar"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("drawProgressBar"))) {
         if (args.size() < 5) {
             String err = F("Error: 5 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.oled->drawProgressBar(args[0].toInt(), args[1].toInt(), args[2].toInt(), args[3].toInt(), args[4].toInt()));
         }
-        String res = String(sys.oled->drawProgressBar(args[0].toInt(), args[1].toInt(), args[2].toInt(), args[3].toInt(), args[4].toInt()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("drawCentered"))) {
+    else if (mod.equalsIgnoreCase(F("OLED")) && cmd.equalsIgnoreCase(F("drawCentered"))) {
         if (args.size() < 2) {
             String err = F("Error: 2 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            String joinedArgs1 = F("");
+            for(size_t j = 1; j < args.size(); j++) {
+                joinedArgs1 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
+            }
+            res = String(sys.oled->drawCentered(args[0].toInt(), joinedArgs1.c_str()));
         }
-        String joinedArgs1 = F("");
-        for(size_t j = 1; j < args.size(); j++) {
-            joinedArgs1 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
-        }
-        String res = String(sys.oled->drawCentered(args[0].toInt(), joinedArgs1.c_str()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("begin"))) {
+    else if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("begin"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            sys.battery->begin();
+            res = F("OK");
         }
-        sys.battery->begin();
-        sys.server->logger(F("[RES] OK"));
-        return F("OK");
     }
-    if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("getVoltage"))) {
+    else if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("getVoltage"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.battery->getVoltage());
         }
-        String res = String(sys.battery->getVoltage());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("updateMeasurement"))) {
+    else if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("updateMeasurement"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.battery->updateMeasurement());
         }
-        String res = String(sys.battery->updateMeasurement());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("getLastResult"))) {
+    else if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("getLastResult"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.battery->getLastResult());
         }
-        String res = String(sys.battery->getLastResult());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("baslatTest"))) {
+    else if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("baslatTest"))) {
         if (args.size() < 2) {
             String err = F("Error: 2 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            sys.battery->baslatTest(args[0].toInt(), args[1].toFloat());
+            res = F("OK");
         }
-        sys.battery->baslatTest(args[0].toInt(), args[1].toFloat());
-        sys.server->logger(F("[RES] OK"));
-        return F("OK");
     }
-    if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("testUpdate"))) {
+    else if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("testUpdate"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.battery->testUpdate());
         }
-        String res = String(sys.battery->testUpdate());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("getInstantReport"))) {
+    else if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("getInstantReport"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.battery->getInstantReport());
         }
-        String res = String(sys.battery->getInstantReport());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("testRaporu"))) {
+    else if (mod.equalsIgnoreCase(F("BATTERY")) && cmd.equalsIgnoreCase(F("testRaporu"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.battery->testRaporu());
         }
-        String res = String(sys.battery->testRaporu());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("wtf"))) {
+    else if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("wtf"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.helper->wtf());
         }
-        String res = String(sys.helper->wtf());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getFreeHeap"))) {
+    else if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getFreeHeap"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.helper->getFreeHeap());
         }
-        String res = String(sys.helper->getFreeHeap());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getHelp"))) {
+    else if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getHelp"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.helper->getHelp());
         }
-        String res = String(sys.helper->getHelp());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getCommandsJSON"))) {
+    else if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("getCommandsJSON"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.helper->getCommandsJSON());
         }
-        String res = String(sys.helper->getCommandsJSON());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("quoteTokenize"))) {
+    else if (mod.equalsIgnoreCase(F("HELPER")) && cmd.equalsIgnoreCase(F("quoteTokenize"))) {
         if (args.size() < 2) {
             String err = F("Error: 2 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.helper->quoteTokenize(args[0], args[1].charAt(0)));
         }
-        String res = String(sys.helper->quoteTokenize(args[0], args[1].charAt(0)));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("reset"))) {
+    else if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("reset"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.wifi->reset());
         }
-        String res = String(sys.wifi->reset());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("connect"))) {
+    else if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("connect"))) {
         if (args.size() < 2) {
             String err = F("Error: 2 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            String joinedArgs1 = F("");
+            for(size_t j = 1; j < args.size(); j++) {
+                joinedArgs1 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
+            }
+            res = String(sys.wifi->connect(args[0], joinedArgs1));
         }
-        String joinedArgs1 = F("");
-        for(size_t j = 1; j < args.size(); j++) {
-            joinedArgs1 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
-        }
-        String res = String(sys.wifi->connect(args[0], joinedArgs1));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("restart"))) {
+    else if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("restart"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.wifi->restart());
         }
-        String res = String(sys.wifi->restart());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getIP"))) {
+    else if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getIP"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.wifi->getIP());
         }
-        String res = String(sys.wifi->getIP());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getMAC"))) {
+    else if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getMAC"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.wifi->getMAC());
         }
-        String res = String(sys.wifi->getMAC());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getSSID"))) {
+    else if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getSSID"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.wifi->getSSID());
         }
-        String res = String(sys.wifi->getSSID());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getPassword"))) {
+    else if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getPassword"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.wifi->getPassword());
         }
-        String res = String(sys.wifi->getPassword());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getStatus"))) {
+    else if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getStatus"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.wifi->getStatus());
         }
-        String res = String(sys.wifi->getStatus());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getStatusAll"))) {
+    else if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("getStatusAll"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.wifi->getStatusAll());
         }
-        String res = String(sys.wifi->getStatusAll());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("isConnected"))) {
+    else if (mod.equalsIgnoreCase(F("WIFI")) && cmd.equalsIgnoreCase(F("isConnected"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.wifi->isConnected());
         }
-        String res = String(sys.wifi->isConnected());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("start"))) {
+    else if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("start"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.timer->start());
         }
-        String res = String(sys.timer->start());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("isExpired"))) {
+    else if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("isExpired"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.timer->isExpired(args[0].toInt()));
         }
-        String res = String(sys.timer->isExpired(args[0].toInt()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("getElapsedMillis"))) {
+    else if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("getElapsedMillis"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.timer->getElapsedMillis());
         }
-        String res = String(sys.timer->getElapsedMillis());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("stop"))) {
+    else if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("stop"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.timer->stop());
         }
-        String res = String(sys.timer->stop());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("reset"))) {
+    else if (mod.equalsIgnoreCase(F("TIMER")) && cmd.equalsIgnoreCase(F("reset"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.timer->reset());
         }
-        String res = String(sys.timer->reset());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("FSM")) && cmd.equalsIgnoreCase(F("readfile"))) {
+    else if (mod.equalsIgnoreCase(F("FSM")) && cmd.equalsIgnoreCase(F("readfile"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.fsm->readfile(args[0].c_str()));
         }
-        String res = String(sys.fsm->readfile(args[0].c_str()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("FSM")) && cmd.equalsIgnoreCase(F("writefile"))) {
+    else if (mod.equalsIgnoreCase(F("FSM")) && cmd.equalsIgnoreCase(F("writefile"))) {
         if (args.size() < 2) {
             String err = F("Error: 2 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            String joinedArgs1 = F("");
+            for(size_t j = 1; j < args.size(); j++) {
+                joinedArgs1 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
+            }
+            res = String(sys.fsm->writefile(args[0].c_str(), joinedArgs1));
         }
-        String joinedArgs1 = F("");
-        for(size_t j = 1; j < args.size(); j++) {
-            joinedArgs1 += args[j] + (j < args.size() - 1 ? F(" ") : F(""));
-        }
-        String res = String(sys.fsm->writefile(args[0].c_str(), joinedArgs1));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("FSM")) && cmd.equalsIgnoreCase(F("deletefile"))) {
+    else if (mod.equalsIgnoreCase(F("FSM")) && cmd.equalsIgnoreCase(F("deletefile"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.fsm->deletefile(args[0].c_str()));
         }
-        String res = String(sys.fsm->deletefile(args[0].c_str()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("FSM")) && cmd.equalsIgnoreCase(F("getfilelist"))) {
+    else if (mod.equalsIgnoreCase(F("FSM")) && cmd.equalsIgnoreCase(F("getfilelist"))) {
         if (args.size() < 0) {
             String err = F("Error: 0 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.fsm->getfilelist());
         }
-        String res = String(sys.fsm->getfilelist());
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
-    if (mod.equalsIgnoreCase(F("FSM")) && cmd.equalsIgnoreCase(F("fileexists"))) {
+    else if (mod.equalsIgnoreCase(F("FSM")) && cmd.equalsIgnoreCase(F("fileexists"))) {
         if (args.size() < 1) {
             String err = F("Error: 1 params required!");
             sys.server->logger(F("[RES] ") + err);
-            return err;
+            res = err;
+        } else {
+            res = String(sys.fsm->fileexists(args[0].c_str()));
         }
-        String res = String(sys.fsm->fileexists(args[0].c_str()));
-        sys.server->logger(F("[RES] ") + res);
-        return res;
     }
 
-    String finalErr = F("Error: Command not found!");
-    sys.server->logger(F("[RES] ") + finalErr);
-    return finalErr;
+    if (res == "") {
+        res = F("Error: Command not found!");
+    }
+    
+    sys.lastResult = res;
+    sys.lastSuccess = !res.startsWith(F("Error")) && res != F("0") && res != "";
+    sys.server->logger(F("[RES] ") + res);
+    return res;
 }
 
 String HELPER::getCommandsJSON() {

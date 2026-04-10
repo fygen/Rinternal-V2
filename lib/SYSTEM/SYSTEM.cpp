@@ -111,7 +111,51 @@ void SYSTEM::updateQueue()
         return; // Şart sağlanana kadar burada takılı kalır (bloklamaz)
     }
 
-    // --- DURUM 3: NORMAL KOMUT ÇALIŞTIRMA ---
+    // --- DURUM 3: NORMAL KOMUT ÇALIŞTIRMA (POPPING NOW) ---
+    commandQueue.pop(); // Take it out of the queue
+
+    // 1. HANDLE CONDITIONAL LOGIC (IF_SUCCESS / IF_FAIL)
+    if (currentLine.startsWith(F("IF_SUCCESS "))) {
+        if (!lastSuccess) {
+            server->logger(F("[QUEUE] Skipping IF_SUCCESS (Last command failed)"));
+            return; 
+        }
+        currentLine = currentLine.substring(11);
+    } 
+    else if (currentLine.startsWith(F("IF_FAIL "))) {
+        if (lastSuccess) {
+            server->logger(F("[QUEUE] Skipping IF_FAIL (Last command succeeded)"));
+            return; 
+        }
+        currentLine = currentLine.substring(8);
+    }
+
+    // 2. HANDLE PIPING (|)
+    if (currentLine.indexOf('|') != -1) {
+        int pipeIdx = currentLine.indexOf('|');
+        String leftSide = currentLine.substring(0, pipeIdx);
+        String rightSide = currentLine.substring(pipeIdx + 1);
+        
+        leftSide.trim();
+        rightSide.trim();
+
+        // Execute Left Side first
+        std::vector<String> leftTokens = HELPER::smartTokenize(leftSide);
+        if (leftTokens.size() >= 2) {
+            String mod = leftTokens[0];
+            String cmd = leftTokens[1];
+            std::vector<String> args;
+            for (size_t i = 2; i < leftTokens.size(); i++) args.push_back(leftTokens[i]);
+            
+            String result = HELPER::dispatchCommand(mod, cmd, args);
+            
+            // Now "Pipe" that result into the right side
+            // We basically treat it as: RightSideCommand + result
+            currentLine = rightSide + " " + result;
+        }
+    }
+
+    // 3. EXECUTE FINAL COMMAND
     std::vector<String> tokens = HELPER::smartTokenize(currentLine);
     if (tokens.size() >= 2)
     {
@@ -123,13 +167,6 @@ void SYSTEM::updateQueue()
 
         // Komutu çalıştır ve sonucunu al (Loglama dispatchCommand içinde yapılıyor)
         HELPER::dispatchCommand(mod, cmd, args);
-
-        commandQueue.pop(); // Komut işlendi, kuyruktan at
-    }
-    else
-    {
-        // Hatalı komut formatı ise atla
-        commandQueue.pop();
     }
 }
 
